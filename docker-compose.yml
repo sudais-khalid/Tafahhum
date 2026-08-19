@@ -1,0 +1,40 @@
+name: tafahhum
+
+services:
+  db:
+    # pgvector ships an image tracking upstream PostgreSQL; pinning both the
+    # Postgres major and the pgvector version keeps index behaviour reproducible.
+    image: pgvector/pgvector:pg17
+    container_name: tafahhum-db
+    environment:
+      POSTGRES_DB: tafahhum
+      POSTGRES_USER: tafahhum
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-tafahhum_dev}
+      # Arabic collation. ICU gives correct ordering for Arabic-script text,
+      # which the default C collation does not.
+      POSTGRES_INITDB_ARGS: >-
+        --locale-provider=icu
+        --icu-locale=und
+        --encoding=UTF8
+    ports:
+      - "${POSTGRES_PORT:-5544}:5432"
+    volumes:
+      - tafahhum_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tafahhum -d tafahhum"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    command:
+      - postgres
+      # Arabic text is token-dense; a larger work_mem keeps GIN scans in memory.
+      - -c
+      - work_mem=32MB
+      - -c
+      - maintenance_work_mem=256MB
+      - -c
+      - shared_buffers=256MB
+
+volumes:
+  tafahhum_pgdata:

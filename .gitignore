@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+htmlcov/
+.coverage
+
+# Node
+node_modules/
+.next/
+out/
+dist/
+build/
+
+# Env / secrets
+.env
+.env.local
+.env.*.local
+*.pem
+
+# Data — corpus artefacts are large and licence-bound, never committed
+data/scans/
+data/ocr/
+data/editions/
+data/quran/*.json
+!data/quran/.gitkeep
+*.pdf
+*.tif
+*.tiff
+
+# OS
+.DS_Store
+Thumbs.db
