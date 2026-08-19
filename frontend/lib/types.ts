@@ -20,6 +20,7 @@ export interface Citation {
 
 export interface PassageTranslation {
   text: string;
+  note?: string | null;
   language: string;
   translator_kind: string;
   translator_name: string;

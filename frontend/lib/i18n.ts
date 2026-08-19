@@ -48,6 +48,8 @@ type Copy = {
   languageName: string;
   originalArabic: string;
   translationPendingNote: string;
+  translationSlowNote: string;
+  translationRejected: string;
   referencesHeading: string;
   sourcesConsulted: (n: number) => string;
   refDied: string;
@@ -109,6 +111,10 @@ const en: Copy = {
   originalArabic: "Original (Arabic)",
   translationPendingNote:
     "No translation stored for this passage yet. The Arabic above is the source.",
+  translationSlowNote:
+    "Translating on the local model — this takes a few minutes per passage on CPU. The Arabic above is complete and unaffected.",
+  translationRejected:
+    "The local model produced unusable output for this language and it was discarded rather than shown.",
   referencesHeading: "References",
   sourcesConsulted: (n) => `${n} sources consulted`,
   refDied: "Died",
@@ -169,6 +175,9 @@ const ar: Copy = {
   languageName: "العربية",
   originalArabic: "النص الأصلي",
   translationPendingNote: "لا توجد ترجمة مخزنة بعد. والنص العربي أعلاه هو الأصل.",
+  translationSlowNote:
+    "الترجمة جارية على النموذج المحلي، وتستغرق دقائق لكل نص. والنص العربي أعلاه كامل وغير متأثر.",
+  translationRejected: "أنتج النموذج المحلي مخرجات غير صالحة لهذه اللغة، فحُذفت ولم تُعرض.",
   referencesHeading: "المراجع",
   sourcesConsulted: (n) => `${n} من المصادر المعتمدة`,
   refDied: "الوفاة",
@@ -229,6 +238,10 @@ const ur: Copy = {
   languageName: "اردو",
   originalArabic: "اصل عربی متن",
   translationPendingNote: "اس عبارت کا ترجمہ ابھی محفوظ نہیں۔ اوپر کا عربی متن اصل ہے۔",
+  translationSlowNote:
+    "مقامی ماڈل پر ترجمہ جاری ہے؛ ہر عبارت پر چند منٹ لگتے ہیں۔ اوپر کا عربی متن مکمل اور غیر متاثر ہے۔",
+  translationRejected:
+    "مقامی ماڈل نے اس زبان کے لیے ناقابلِ استعمال نتیجہ دیا، جسے دکھانے کے بجائے رد کر دیا گیا۔",
   referencesHeading: "حوالہ جات",
   sourcesConsulted: (n) => `${n} مآخذ سے استفادہ`,
   refDied: "وفات",

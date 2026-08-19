@@ -83,7 +83,10 @@ function PassageBlock({
               </span>
             )}
           </div>
-          {translation ? (
+          {/* Three distinct states, because they mean different things to a
+              reader: a translation exists, one is being produced, or one was
+              attempted and rejected. Collapsing them would hide a failure. */}
+          {translation && translation.text ? (
             <p
               className="translation-text"
               lang={language}
@@ -91,9 +94,13 @@ function PassageBlock({
             >
               {translation.text}
             </p>
+          ) : translation ? (
+            <p className="translation-placeholder" data-tone="warn">
+              {translation.note ?? t.translationRejected}
+            </p>
           ) : (
             <p className="translation-placeholder">
-              {translationPending ? t.translating : t.translationPendingNote}
+              {translationPending ? t.translationSlowNote : t.translationPendingNote}
             </p>
           )}
         </div>

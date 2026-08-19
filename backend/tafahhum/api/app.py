@@ -284,6 +284,11 @@ def translate(passage_id: str, language: Language = Query()) -> dict:
         "verification_status": translation.verification_status.value,
         "is_machine_translation": translation.is_machine,
         "cached": status == "cached",
+        # Empty text with a note means the attempt was made and rejected — a
+        # degenerate local model, or a failed call. The client must be able to
+        # tell that apart from "not tried yet".
+        "attempted": True,
+        "note": translation.note,
         "notice": (
             "This is a translation, not the source. The original is shown beside "
             "it and is what citations refer to."

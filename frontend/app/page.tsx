@@ -111,6 +111,7 @@ export default function Home() {
                 model_name: body.model_name,
                 verification_status: body.verification_status,
                 is_machine: body.is_machine_translation,
+                note: body.note ?? null,
               },
             }));
           } finally {

@@ -162,7 +162,181 @@ class ClaudeTranslator:
         )
 
 
-_translator: PassageTranslator = ClaudeTranslator()
+# ---------------------------------------------------------------------------
+# Local model
+# ---------------------------------------------------------------------------
+
+def looks_degenerate(text: str, *, min_words: int = 12) -> tuple[bool, str | None]:
+    """Detect the repetition collapse small models fall into.
+
+    A 7B model asked for a language it was not trained well on will often emit a
+    single token forever — "اللہ نے نے نے نے نے …". The output is fluent-looking
+    garbage, and storing it would put nonsense under a passage where a reader
+    expects a translation. Rejecting it is better than showing it.
+
+    Two checks: one token dominating the output, and a short run repeating.
+    """
+    words = text.split()
+    if len(words) < min_words:
+        return False, None
+
+    counts: dict[str, int] = {}
+    for w in words:
+        counts[w] = counts.get(w, 0) + 1
+    top, n = max(counts.items(), key=lambda kv: kv[1])
+    if n / len(words) > 0.35:
+        return True, f"token {top!r} is {n / len(words):.0%} of the output"
+
+    # The same short phrase repeated back to back.
+    for size in (1, 2, 3):
+        run = 1
+        for i in range(size, len(words), size):
+            if words[i : i + size] == words[i - size : i]:
+                run += 1
+                if run >= 8:
+                    return True, f"{size}-word phrase repeats {run}+ times"
+            else:
+                run = 1
+    return False, None
+
+
+class OllamaTranslator:
+    """Translation through a locally running Ollama model.
+
+    Exists so the system is useful without cloud credentials. Quality depends
+    entirely on the model: a code-tuned model handles English acceptably and
+    collapses on Urdu, so `looks_degenerate` gates every result and a rejected
+    output is reported rather than stored.
+    """
+
+    name = "ollama"
+
+    def __init__(
+        self,
+        model: str | None = None,
+        host: str = "http://127.0.0.1:11434",
+        timeout: float = 300.0,
+    ):
+        self.model = model or os.environ.get("TAFAHHUM_OLLAMA_MODEL", "")
+        self.host = host.rstrip("/")
+        self.timeout = timeout
+
+    def _tags(self) -> list[str]:
+        import httpx
+
+        try:
+            r = httpx.get(f"{self.host}/api/tags", timeout=5.0)
+            r.raise_for_status()
+            return [m["name"] for m in r.json().get("models", [])]
+        except Exception:
+            return []
+
+    def available(self) -> bool:
+        tags = self._tags()
+        if not tags:
+            return False
+        if self.model:
+            return self.model in tags
+        # No model configured: adopt whatever is installed, preferring a
+        # multilingual family over a code-tuned one.
+        preferred = ("aya", "gemma", "llama", "mistral", "qwen")
+        for family in preferred:
+            for tag in tags:
+                if family in tag and "coder" not in tag:
+                    self.model = tag
+                    return True
+        self.model = tags[0]
+        return True
+
+    def translate(
+        self, text: str, *, target: Language, source: Language = Language.AR
+    ) -> Translation:
+        import httpx
+
+        if target is source:
+            return Translation(
+                text=text, language=target, translator_kind="HUMAN",
+                translator_name="(source language)", model_name=None,
+                verification_status=VerificationStatus.VERIFIED,
+            )
+        if not self.model:
+            self.available()
+
+        # A local model has no system-prompt channel here, so the instructions
+        # are prepended to the user prompt instead.
+        prompt = (
+            f"{_SYSTEM}\n\n"
+            f"Translate this {_LANG_NAME[source]} passage into "
+            f"{_LANG_NAME[target]}.\n\n{text}"
+        )
+        try:
+            response = httpx.post(
+                f"{self.host}/api/generate",
+                json={
+                    "model": self.model,
+                    "prompt": prompt,
+                    "stream": False,
+                    # Deterministic, and with a repeat penalty that discourages
+                    # the collapse the guard below catches.
+                    "options": {
+                        "temperature": 0,
+                        "repeat_penalty": 1.15,
+                        "num_predict": 2048,
+                    },
+                },
+                timeout=self.timeout,
+            )
+            response.raise_for_status()
+            out = response.json().get("response", "").strip()
+        except Exception as exc:
+            return Translation(
+                text="", language=target, translator_kind="MACHINE",
+                translator_name=self.name, model_name=self.model,
+                verification_status=VerificationStatus.UNVERIFIED,
+                note=f"Local translation failed: {exc}",
+            )
+
+        degenerate, reason = looks_degenerate(out)
+        if degenerate:
+            return Translation(
+                text="", language=target, translator_kind="MACHINE",
+                translator_name=self.name, model_name=self.model,
+                verification_status=VerificationStatus.UNVERIFIED,
+                note=(
+                    f"Local model produced degenerate output ({reason}) and it was "
+                    f"discarded. {self.model} is not adequate for "
+                    f"{_LANG_NAME[target]}; install a multilingual model."
+                ),
+            )
+
+        return Translation(
+            text=out,
+            language=target,
+            translator_kind="MACHINE",
+            translator_name=self.name,
+            model_name=self.model,
+            verification_status=VerificationStatus.MACHINE_PROPOSED,
+            note="Local machine translation. The Arabic beside it is the source.",
+        )
+
+
+def select_translator() -> PassageTranslator:
+    """Prefer a hosted model, fall back to a local one, else nothing.
+
+    Ordering is by expected quality on classical Arabic, not by cost: a wrong
+    translation of exegesis is worse than an absent one, and an absent one is
+    reported honestly.
+    """
+    hosted = ClaudeTranslator()
+    if hosted.available():
+        return hosted
+    local = OllamaTranslator()
+    if local.available():
+        return local
+    return hosted  # unavailable; callers surface the 503
+
+
+_translator: PassageTranslator = select_translator()
 
 
 def set_translator(t: PassageTranslator) -> None:
