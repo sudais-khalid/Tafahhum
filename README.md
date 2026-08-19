@@ -73,6 +73,7 @@ cd frontend && npm install && npm run dev  # http://localhost:3000
 | [DATA_MODEL.md](docs/DATA_MODEL.md) | Entities, relationships, schema rationale |
 | [CORPUS_PIPELINE.md](docs/CORPUS_PIPELINE.md) | Acquisition → scan → OCR → verify → index |
 | [ARABIC_PROCESSING.md](docs/ARABIC_PROCESSING.md) | Normalisation, diacritics, orthography |
+| [OCR.md](docs/OCR.md) | OCR engines, measured accuracy, the Nastaliq problem |
 | [LANGUAGE_PIPELINE.md](docs/LANGUAGE_PIPELINE.md) | Arabic pivot, ar/en/ur user languages |
 | [RETRIEVAL.md](docs/RETRIEVAL.md) | Hybrid sparse + dense + metadata + rerank |
 | [RULE_ENGINE.md](docs/RULE_ENGINE.md) | Scholarly rules and their provenance |

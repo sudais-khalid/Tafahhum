@@ -13,6 +13,7 @@ dependencies = [
     "pydantic>=2.10",
     "pydantic-settings>=2.7",
     "httpx>=0.28",
+    "pymupdf>=1.25",
 ]
 
 [project.optional-dependencies]
@@ -22,6 +23,11 @@ dependencies = [
 ml = [
     "sentence-transformers>=3.3",
     "torch>=2.5",
+]
+# Model-backed OCR and passage translation. Optional: the corpus, retrieval, and
+# API all work without it; only the vision-OCR and translation paths need it.
+models = [
+    "anthropic>=0.69",
 ]
 dev = [
     "pytest>=8.3",

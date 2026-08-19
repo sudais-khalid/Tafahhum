@@ -75,3 +75,18 @@ export interface QueryResult {
   trace: Trace;
   insufficient_evidence: boolean;
 }
+
+export interface TranslationResult {
+  passage_id: string;
+  language: string;
+  text: string;
+  source_text: string;
+  source_language: string;
+  translator_kind: string;
+  translator_name: string;
+  model_name: string | null;
+  verification_status: string;
+  is_machine_translation: boolean;
+  cached: boolean;
+  notice: string;
+}

@@ -45,6 +45,14 @@ type Copy = {
   footerNote: string;
   footerCorpus: string;
   error: string;
+  languageName: string;
+  showTranslation: (lang: string) => string;
+  hideTranslation: string;
+  translating: string;
+  translationInto: (lang: string) => string;
+  machineTranslation: string;
+  translationUnavailable: string;
+  translationFailed: string;
 };
 
 const en: Copy = {
@@ -82,6 +90,15 @@ const en: Copy = {
     "Tafahhum organises and cites the Tafsir tradition. It does not author Tafsir, and it is not a substitute for qualified scholars.",
   footerCorpus: "Corpus coverage is partial and expanding. Absence of a source is not evidence of its silence.",
   error: "The search could not be completed. Check that the API is running, then try again.",
+  languageName: "English",
+  showTranslation: (lang) => `Translate into ${lang}`,
+  hideTranslation: "Hide translation",
+  translating: "Translating…",
+  translationInto: (lang) => `${lang} translation`,
+  machineTranslation: "machine translation",
+  translationUnavailable:
+    "No translation backend is configured on the server. The Arabic above is the source and is unaffected.",
+  translationFailed: "The translation could not be produced. The Arabic above is unaffected.",
 };
 
 const ar: Copy = {
@@ -117,6 +134,14 @@ const ar: Copy = {
   footerNote: "تفهّم ينظّم تراث التفسير ويوثّقه. وهو لا يؤلّف تفسيرًا، ولا يغني عن أهل العلم.",
   footerCorpus: "تغطية المدونة جزئية ومتنامية. وغياب المصدر ليس دليلًا على سكوته.",
   error: "تعذّر إتمام البحث. تأكد من تشغيل الخادم ثم أعد المحاولة.",
+  languageName: "العربية",
+  showTranslation: () => "النص بالعربية (المصدر)",
+  hideTranslation: "إخفاء",
+  translating: "جارٍ الترجمة…",
+  translationInto: () => "النص الأصلي",
+  machineTranslation: "ترجمة آلية",
+  translationUnavailable: "لا توجد خدمة ترجمة مهيأة على الخادم. والنص العربي أعلاه هو الأصل.",
+  translationFailed: "تعذّرت الترجمة. والنص العربي أعلاه لم يتأثر.",
 };
 
 const ur: Copy = {
@@ -153,6 +178,15 @@ const ur: Copy = {
     "تفہّم تفسیری ورثے کو مرتب اور مستند کرتا ہے۔ یہ خود تفسیر نہیں لکھتا، اور اہلِ علم کا بدل نہیں۔",
   footerCorpus: "مجموعے کا احاطہ جزوی اور بڑھتا ہوا ہے۔ کسی مآخذ کا نہ ہونا اس کی خاموشی کی دلیل نہیں۔",
   error: "تلاش مکمل نہ ہو سکی۔ سرور چل رہا ہے یا نہیں، جانچ کر دوبارہ کوشش کریں۔",
+  languageName: "اردو",
+  showTranslation: (lang) => `${lang} ترجمہ دیکھیے`,
+  hideTranslation: "ترجمہ چھپائیے",
+  translating: "ترجمہ ہو رہا ہے…",
+  translationInto: (lang) => `${lang} ترجمہ`,
+  machineTranslation: "مشینی ترجمہ",
+  translationUnavailable:
+    "سرور پر ترجمے کی سہولت مہیا نہیں۔ اوپر کا عربی متن اصل ہے اور غیر متاثر ہے۔",
+  translationFailed: "ترجمہ نہ ہو سکا۔ اوپر کا عربی متن غیر متاثر ہے۔",
 };
 
 export const COPY: Record<UiLanguage, Copy> = { en, ar, ur };

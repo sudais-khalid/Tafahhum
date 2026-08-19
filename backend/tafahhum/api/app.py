@@ -3,16 +3,22 @@
 from __future__ import annotations
 
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 
 from tafahhum.api.schemas import QueryIn, QueryOut, serialise
 from tafahhum.core.config import get_settings
-from tafahhum.core.enums import USER_LANGUAGES
+from tafahhum.core.enums import USER_LANGUAGES, Language
 from tafahhum.db.pool import connection, get_pool
+from tafahhum.language.translate import translate_passage
 from tafahhum.pipeline import QueryRequest, run_query
 from tafahhum.quran.reference import parse_ayah_references
+
+REPO_ROOT = Path(__file__).resolve().parents[3]
+SCAN_ROOT = (REPO_ROOT / "data" / "scans").resolve()
 
 
 @asynccontextmanager
@@ -224,6 +230,140 @@ def ayah(surah: int, ayah: int) -> dict:
     if row is None:
         raise HTTPException(status_code=404, detail=f"{surah}:{ayah} not in the corpus")
     return row
+
+
+@app.post(f"{API}/passages/{{passage_id}}/translate")
+def translate(passage_id: str, language: Language = Query()) -> dict:
+    """Translate one passage into a user language.
+
+    The response deliberately carries the source text alongside the translation
+    and flags whether the translation is machine-produced, so a client cannot
+    render the translation without also having the original and its provenance.
+    """
+    if language not in USER_LANGUAGES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"language must be one of {[lang.value for lang in USER_LANGUAGES]}",
+        )
+
+    with connection() as conn:
+        translation, status = translate_passage(conn, passage_id, target=language)
+
+        if status == "not_found":
+            raise HTTPException(status_code=404, detail="passage not found")
+        if status == "unavailable":
+            raise HTTPException(
+                status_code=503,
+                detail=(
+                    "No translation backend is configured. Set ANTHROPIC_API_KEY "
+                    "or run `ant auth login` on the server, then retry."
+                ),
+            )
+
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT COALESCE(p.verified_text, p.raw_text) AS source_text,
+                       p.language::text AS source_language
+                FROM passage p WHERE p.id = %s
+                """,
+                (passage_id,),
+            )
+            src = cur.fetchone()
+
+    assert translation is not None
+    return {
+        "passage_id": passage_id,
+        "language": translation.language.value,
+        "text": translation.text,
+        "source_text": src["source_text"],
+        "source_language": src["source_language"],
+        "translator_kind": translation.translator_kind,
+        "translator_name": translation.translator_name,
+        "model_name": translation.model_name,
+        "verification_status": translation.verification_status.value,
+        "is_machine_translation": translation.is_machine,
+        "cached": status == "cached",
+        "notice": (
+            "This is a translation, not the source. The original is shown beside "
+            "it and is what citations refer to."
+        ),
+    }
+
+
+@app.get(f"{API}/biblio")
+def biblio_sources() -> dict:
+    """Bibliographical sources and how far their processing has got."""
+    with connection() as conn, conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT b.slug, b.title_ar, b.title_en, b.genre,
+                   b.verification_status::text AS verification_status, b.notes,
+                   count(sp.id) AS pages,
+                   count(sp.ocr_raw_text) AS ocr_complete,
+                   count(sp.ocr_verified_text) AS human_verified,
+                   round(avg(sp.ocr_confidence)::numeric, 3) AS mean_ocr_confidence
+            FROM biblio_source b
+            LEFT JOIN scan_page sp ON sp.biblio_source_id = b.id
+            GROUP BY b.slug, b.title_ar, b.title_en, b.genre,
+                     b.verification_status, b.notes
+            ORDER BY b.slug
+            """
+        )
+        rows = cur.fetchall()
+
+    for r in rows:
+        r["citable"] = r["human_verified"] > 0
+    return {
+        "sources": rows,
+        "note": (
+            "A source becomes citable only once pages have been verified by a "
+            "human against the page image. Machine transcription is a proposal."
+        ),
+    }
+
+
+@app.get(f"{API}/scans/{{scan_page_id}}")
+def scan_page(scan_page_id: str) -> dict:
+    """One scanned page with its OCR state, for the review interface."""
+    with connection() as conn, conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT sp.id, sp.page_number, sp.page_label, sp.volume, sp.image_uri,
+                   sp.image_width, sp.image_height, sp.language::text AS language,
+                   sp.script, sp.ocr_raw_text, sp.ocr_normalized_text,
+                   sp.ocr_verified_text, sp.ocr_engine, sp.ocr_engine_version,
+                   sp.ocr_confidence, sp.ocr_engine_note, sp.needs_review,
+                   sp.verification_status::text AS verification_status,
+                   sp.reviewed_by, sp.reviewed_at,
+                   b.slug AS source_slug, b.title_ar AS source_title
+            FROM scan_page sp
+            LEFT JOIN biblio_source b ON b.id = sp.biblio_source_id
+            WHERE sp.id = %s
+            """,
+            (scan_page_id,),
+        )
+        row = cur.fetchone()
+    if row is None:
+        raise HTTPException(status_code=404, detail="scan page not found")
+    return row
+
+
+@app.get(f"{API}/scans/{{scan_page_id}}/image")
+def scan_image(scan_page_id: str) -> FileResponse:
+    """Serve the page image — the primary evidence behind any citation."""
+    with connection() as conn, conn.cursor() as cur:
+        cur.execute("SELECT image_uri FROM scan_page WHERE id = %s", (scan_page_id,))
+        row = cur.fetchone()
+    if row is None:
+        raise HTTPException(status_code=404, detail="scan page not found")
+
+    path = (REPO_ROOT / row["image_uri"]).resolve()
+    # Confine reads to the scan directory: image_uri is data, and a path that
+    # escaped it would turn this endpoint into an arbitrary file read.
+    if not path.is_file() or not path.is_relative_to(SCAN_ROOT):
+        raise HTTPException(status_code=404, detail="image not available")
+    return FileResponse(path, media_type="image/png")
 
 
 @app.get(f"{API}/parse")

@@ -1,6 +1,7 @@
 import type { Ayah, Passage, UiLanguage, Work } from "@/lib/types";
 import { COPY } from "@/lib/i18n";
 import { ProvenanceLadder } from "./ProvenanceLadder";
+import { TranslationPanel } from "./TranslationPanel";
 
 /* Quranic text is rendered by its own component, in its own colour, in its own
  * block. It is never a card in the evidence list, because it is not evidence
@@ -41,6 +42,12 @@ function PassageBlock({ passage, language }: { passage: Passage; language: UiLan
       <ProvenanceLadder citation={passage.citation} language={language} />
 
       <div className="citation">{passage.citation.reference}</div>
+
+      {/* Arabic readers already have the source; a translation into the source
+          language would be a round trip through a model for no gain. */}
+      {language !== "ar" && (
+        <TranslationPanel passageId={passage.passage_id} language={language} />
+      )}
 
       <div className="chips">
         <span className="chip">{passage.evidence_type.replaceAll("_", " ")}</span>
