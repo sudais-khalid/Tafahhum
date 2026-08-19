@@ -211,6 +211,48 @@ def fetch_stored(
     )
 
 
+def fetch_many(
+    conn: psycopg.Connection, passage_ids: list[str], target: Language
+) -> dict[str, Translation]:
+    """Load cached translations for a whole result set in one round trip.
+
+    A query returns a dozen passages; fetching their translations one at a time
+    would make the number of database calls a function of result size for no
+    reason. Human translations win over machine ones, and verified over
+    unverified, using the same precedence as `fetch_stored`.
+    """
+    if not passage_ids:
+        return {}
+
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT DISTINCT ON (passage_id)
+                   passage_id, text, translator_kind, translator_name, model_name,
+                   verification_status::text AS verification_status
+            FROM passage_translation
+            WHERE passage_id = ANY(%s::uuid[]) AND language = %s
+            ORDER BY passage_id,
+                     CASE translator_kind WHEN 'HUMAN' THEN 0 ELSE 1 END,
+                     CASE verification_status::text WHEN 'VERIFIED' THEN 0 ELSE 1 END
+            """,
+            (passage_ids, target.value),
+        )
+        rows = cur.fetchall()
+
+    return {
+        str(r["passage_id"]): Translation(
+            text=r["text"],
+            language=target,
+            translator_kind=r["translator_kind"],
+            translator_name=r["translator_name"],
+            model_name=r["model_name"],
+            verification_status=VerificationStatus(r["verification_status"]),
+        )
+        for r in rows
+    }
+
+
 def store(conn: psycopg.Connection, passage_id: str, translation: Translation) -> None:
     with conn.cursor() as cur:
         cur.execute(

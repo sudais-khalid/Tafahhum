@@ -46,6 +46,21 @@ type Copy = {
   footerCorpus: string;
   error: string;
   languageName: string;
+  originalArabic: string;
+  translationPendingNote: string;
+  referencesHeading: string;
+  sourcesConsulted: (n: number) => string;
+  refDied: string;
+  refEdition: string;
+  refNoPrintEdition: string;
+  refPassages: string;
+  refCitationDepth: string;
+  refToPage: string;
+  refToWork: string;
+  refRights: string;
+  refVerification: string;
+  refOpenSource: string;
+  refCoverage: (pct: number) => string;
   showTranslation: (lang: string) => string;
   hideTranslation: string;
   translating: string;
@@ -91,6 +106,23 @@ const en: Copy = {
   footerCorpus: "Corpus coverage is partial and expanding. Absence of a source is not evidence of its silence.",
   error: "The search could not be completed. Check that the API is running, then try again.",
   languageName: "English",
+  originalArabic: "Original (Arabic)",
+  translationPendingNote:
+    "No translation stored for this passage yet. The Arabic above is the source.",
+  referencesHeading: "References",
+  sourcesConsulted: (n) => `${n} sources consulted`,
+  refDied: "Died",
+  refEdition: "Edition",
+  refNoPrintEdition: "digital text, no print edition identified",
+  refPassages: "Passages cited",
+  refCitationDepth: "Citation resolves to",
+  refToPage: "volume and page",
+  refToWork: "the work only",
+  refRights: "Rights",
+  refVerification: "Verification",
+  refOpenSource: "Open source record",
+  refCoverage: (pct) =>
+    `${pct}% of cited passages resolve to a printed page. The rest resolve to the work and edition only.`,
   showTranslation: (lang) => `Translate into ${lang}`,
   hideTranslation: "Hide translation",
   translating: "Translating…",
@@ -135,6 +167,22 @@ const ar: Copy = {
   footerCorpus: "تغطية المدونة جزئية ومتنامية. وغياب المصدر ليس دليلًا على سكوته.",
   error: "تعذّر إتمام البحث. تأكد من تشغيل الخادم ثم أعد المحاولة.",
   languageName: "العربية",
+  originalArabic: "النص الأصلي",
+  translationPendingNote: "لا توجد ترجمة مخزنة بعد. والنص العربي أعلاه هو الأصل.",
+  referencesHeading: "المراجع",
+  sourcesConsulted: (n) => `${n} من المصادر المعتمدة`,
+  refDied: "الوفاة",
+  refEdition: "الطبعة",
+  refNoPrintEdition: "نص رقمي دون طبعة مطبوعة محددة",
+  refPassages: "النصوص المستشهد بها",
+  refCitationDepth: "يصل التوثيق إلى",
+  refToPage: "المجلد والصفحة",
+  refToWork: "الكتاب فقط",
+  refRights: "الحقوق",
+  refVerification: "التوثيق",
+  refOpenSource: "فتح سجل المصدر",
+  refCoverage: (pct) =>
+    `${pct}٪ من النصوص المستشهد بها تصل إلى صفحة مطبوعة. وبقيتها تصل إلى الكتاب والطبعة فقط.`,
   showTranslation: () => "النص بالعربية (المصدر)",
   hideTranslation: "إخفاء",
   translating: "جارٍ الترجمة…",
@@ -179,6 +227,22 @@ const ur: Copy = {
   footerCorpus: "مجموعے کا احاطہ جزوی اور بڑھتا ہوا ہے۔ کسی مآخذ کا نہ ہونا اس کی خاموشی کی دلیل نہیں۔",
   error: "تلاش مکمل نہ ہو سکی۔ سرور چل رہا ہے یا نہیں، جانچ کر دوبارہ کوشش کریں۔",
   languageName: "اردو",
+  originalArabic: "اصل عربی متن",
+  translationPendingNote: "اس عبارت کا ترجمہ ابھی محفوظ نہیں۔ اوپر کا عربی متن اصل ہے۔",
+  referencesHeading: "حوالہ جات",
+  sourcesConsulted: (n) => `${n} مآخذ سے استفادہ`,
+  refDied: "وفات",
+  refEdition: "ایڈیشن",
+  refNoPrintEdition: "ڈیجیٹل متن، مطبوعہ ایڈیشن کی شناخت نہیں",
+  refPassages: "پیش کردہ عبارات",
+  refCitationDepth: "حوالہ کہاں تک پہنچتا ہے",
+  refToPage: "جلد اور صفحہ",
+  refToWork: "صرف کتاب تک",
+  refRights: "حقوق",
+  refVerification: "تصدیق",
+  refOpenSource: "مآخذ کا ریکارڈ کھولیے",
+  refCoverage: (pct) =>
+    `${pct}٪ عبارات مطبوعہ صفحے تک پہنچتی ہیں۔ باقی صرف کتاب اور ایڈیشن تک۔`,
   showTranslation: (lang) => `${lang} ترجمہ دیکھیے`,
   hideTranslation: "ترجمہ چھپائیے",
   translating: "ترجمہ ہو رہا ہے…",

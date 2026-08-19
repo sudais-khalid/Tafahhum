@@ -1,12 +1,17 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AyahBlock, WorkGroup } from "@/components/Evidence";
+import { References } from "@/components/References";
 import { TracePanel } from "@/components/TracePanel";
 import { COPY, DIR, LANGUAGES } from "@/lib/i18n";
-import type { QueryResult, UiLanguage } from "@/lib/types";
+import type { PassageTranslation, QueryResult, UiLanguage } from "@/lib/types";
 
 const API = process.env.TAFAHHUM_API ?? "http://127.0.0.1:8000";
+
+/** Concurrent translation requests. Kept low so a twelve-passage result does not
+ *  open twelve simultaneous model calls against the server. */
+const TRANSLATION_CONCURRENCY = 3;
 
 export default function Home() {
   const [language, setLanguage] = useState<UiLanguage>("en");
@@ -15,11 +20,15 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Translations that arrived after the initial response.
+  const [translations, setTranslations] = useState<Record<string, PassageTranslation>>({});
+  const [pending, setPending] = useState<Set<string>>(new Set());
+  const [translationNotice, setTranslationNotice] = useState<string | null>(null);
+  const runId = useRef(0);
+
   const t = COPY[language];
   const dir = DIR[language];
 
-  // The document direction follows the interface language, so RTL layout is a
-  // property of the page rather than something each component re-implements.
   useEffect(() => {
     document.documentElement.lang = language;
     document.documentElement.dir = dir;
@@ -30,8 +39,13 @@ export default function Home() {
       const query = text.trim();
       if (!query) return;
 
+      const thisRun = ++runId.current;
       setLoading(true);
       setError(null);
+      setTranslations({});
+      setPending(new Set());
+      setTranslationNotice(null);
+
       try {
         const res = await fetch(`${API}/api/v1/query`, {
           method: "POST",
@@ -39,15 +53,88 @@ export default function Home() {
           body: JSON.stringify({ query, language, mode: "DETAILED" }),
         });
         if (!res.ok) throw new Error(String(res.status));
-        setResult((await res.json()) as QueryResult);
+        const data = (await res.json()) as QueryResult;
+        if (thisRun !== runId.current) return;
+        setResult(data);
+        void fillTranslations(data, thisRun);
       } catch {
-        setError(t.error);
-        setResult(null);
+        if (thisRun === runId.current) {
+          setError(t.error);
+          setResult(null);
+        }
       } finally {
-        setLoading(false);
+        if (thisRun === runId.current) setLoading(false);
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [language, t.error],
+  );
+
+  /* Request the translations the server did not already have cached.
+   *
+   * The Arabic is on screen throughout; translations fill in beneath it as they
+   * arrive, so a slow or unavailable backend never blocks the evidence. */
+  const fillTranslations = useCallback(
+    async (data: QueryResult, thisRun: number) => {
+      if (language === "ar") return;
+      const missing = data.untranslated_passage_ids;
+      if (missing.length === 0) return;
+
+      setPending(new Set(missing));
+      const queue = [...missing];
+      let backendMissing = false;
+
+      async function worker() {
+        while (queue.length > 0) {
+          const id = queue.shift();
+          if (!id || thisRun !== runId.current) return;
+          try {
+            const res = await fetch(
+              `${API}/api/v1/passages/${id}/translate?language=${language}`,
+              { method: "POST" },
+            );
+            if (res.status === 503) {
+              backendMissing = true;
+              queue.length = 0;
+              return;
+            }
+            if (!res.ok) continue;
+            const body = await res.json();
+            if (thisRun !== runId.current) return;
+            setTranslations((prev) => ({
+              ...prev,
+              [id]: {
+                text: body.text,
+                language: body.language,
+                translator_kind: body.translator_kind,
+                translator_name: body.translator_name,
+                model_name: body.model_name,
+                verification_status: body.verification_status,
+                is_machine: body.is_machine_translation,
+              },
+            }));
+          } finally {
+            if (thisRun === runId.current) {
+              setPending((prev) => {
+                const next = new Set(prev);
+                next.delete(id);
+                return next;
+              });
+            }
+          }
+        }
+      }
+
+      await Promise.all(
+        Array.from({ length: Math.min(TRANSLATION_CONCURRENCY, queue.length) }, worker),
+      );
+
+      if (thisRun === runId.current) {
+        setPending(new Set());
+        if (backendMissing) setTranslationNotice(t.translationUnavailable);
+      }
+    },
+    [language, t.translationUnavailable],
   );
 
   return (
@@ -135,8 +222,9 @@ export default function Home() {
               <AyahBlock key={a.reference} ayah={a} language={language} />
             ))}
 
-            {result.notes.length > 0 && (
+            {(result.notes.length > 0 || translationNotice) && (
               <div className="notice-list">
+                {translationNotice && <div className="notice">{translationNotice}</div>}
                 {result.notes.map((n) => (
                   <div className="notice" key={n}>
                     {n}
@@ -159,9 +247,21 @@ export default function Home() {
               </div>
             ) : (
               result.works.map((w) => (
-                <WorkGroup key={w.work_slug} work={w} language={language} />
+                <WorkGroup
+                  key={w.work_slug}
+                  work={w}
+                  language={language}
+                  translations={translations}
+                  pending={pending}
+                />
               ))
             )}
+
+            <References
+              references={result.references}
+              language={language}
+              pageCoverage={result.page_level_citation_coverage}
+            />
 
             <TracePanel result={result} language={language} />
           </>

@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from tafahhum.core.enums import EvidenceType, VerificationStatus
+from tafahhum.core.enums import EvidenceType, Language, VerificationStatus
 
 
 @dataclass(frozen=True)
@@ -26,6 +26,10 @@ class Citation:
     edition_slug: str
     edition_publisher: str | None
     edition_year: int | None
+    edition_source_url: str | None
+    edition_copyright_status: str
+    edition_license_note: str | None
+    edition_verification_status: VerificationStatus
     volume: int | None
     page_start: int | None
     page_end: int | None
@@ -66,6 +70,8 @@ class RetrievedPassage:
     citation: Citation
     display_text: str
     normalized_text: str
+    #: Language the source text is in. Not every work in the corpus is Arabic.
+    language: Language
     evidence_kind: EvidenceType
     verification_status: VerificationStatus
     surah_number: int | None

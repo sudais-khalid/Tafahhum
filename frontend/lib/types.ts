@@ -18,15 +18,50 @@ export interface Citation {
   reference: string;
 }
 
+export interface PassageTranslation {
+  text: string;
+  language: string;
+  translator_kind: string;
+  translator_name: string;
+  model_name: string | null;
+  verification_status: string;
+  is_machine: boolean;
+}
+
 export interface Passage {
   passage_id: string;
   text: string;
+  text_language: string;
+  translation: PassageTranslation | null;
   evidence_type: string;
   verification_status: string;
   ayah: string | null;
   citation: Citation;
   retrieval_strategies: string[];
   fused_score: number;
+  reference_number: number;
+}
+
+export interface Reference {
+  number: number;
+  work_slug: string;
+  work_title_ar: string;
+  work_title_en: string | null;
+  author_name_ar: string;
+  author_name_en: string | null;
+  author_death_year_hijri: number | null;
+  author_dates_verified: boolean;
+  edition_slug: string;
+  edition_publisher: string | null;
+  edition_year: number | null;
+  digital_source_url: string | null;
+  copyright_status: string;
+  license_note: string | null;
+  passages_cited: number;
+  resolves_to_page: boolean;
+  citation_precision: string;
+  verification_status: string;
+  full_citation: string;
 }
 
 export interface Work {
@@ -40,6 +75,13 @@ export interface Work {
   passages: Passage[];
 }
 
+export interface AyahTranslation {
+  text: string;
+  language: string;
+  translator_name: string;
+  translation_slug: string;
+}
+
 export interface Ayah {
   reference: string;
   surah_number: number;
@@ -47,6 +89,7 @@ export interface Ayah {
   surah_name_ar: string;
   surah_name_en: string;
   text_uthmani: string;
+  translations: AyahTranslation[];
   evidence_type: string;
 }
 
@@ -66,11 +109,14 @@ export interface QueryResult {
   pivot_query: string;
   query_type: string;
   classification_confidence: number;
-  references: string[];
+  ayah_references: string[];
   ayahs: Ayah[];
   works: Work[];
+  references: Reference[];
   passage_count: number;
   page_level_citation_coverage: number;
+  translation_coverage: number;
+  untranslated_passage_ids: string[];
   notes: string[];
   trace: Trace;
   insufficient_evidence: boolean;

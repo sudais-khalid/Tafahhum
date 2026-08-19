@@ -19,7 +19,23 @@ from tafahhum.core.enums import EvidenceType, Language, QueryType, VerificationS
 from tafahhum.quran.reference import AyahRef
 from tafahhum.retrieval.models import RetrievalTrace, RetrievedPassage
 from tafahhum.rules.classify import Classification
+from tafahhum.language.translate import Translation, fetch_many
 from tafahhum.rules.engine import RetrievalPlan
+
+
+@dataclass(frozen=True)
+class AyahTranslation:
+    """An established translation of an ayah, by a named translator.
+
+    Revealed text is never machine-translated. A reader in English or Urdu is
+    shown a recognised translation with its translator named, so they know whose
+    rendering they are reading.
+    """
+
+    text: str
+    language: Language
+    translator_name: str
+    translation_slug: str
 
 
 @dataclass(frozen=True)
@@ -31,6 +47,7 @@ class AyahText:
     surah_name_ar: str
     surah_name_en: str
     text_uthmani: str
+    translations: tuple[AyahTranslation, ...] = ()
     evidence_kind: EvidenceType = EvidenceType.QURANIC_TEXT
 
     @property
@@ -77,6 +94,9 @@ class EvidencePackage:
     trace: RetrievalTrace = field(default_factory=RetrievalTrace)
     rules_applied: list[dict[str, str]] = field(default_factory=list)
     notes: list[str] = field(default_factory=list)
+    #: Cached translations keyed by passage id, in the user's language. Absent
+    #: entries mean no translation exists yet, not that none is possible.
+    translations: dict[str, Translation] = field(default_factory=dict)
 
     @property
     def is_empty(self) -> bool:
@@ -85,6 +105,14 @@ class EvidencePackage:
     @property
     def passage_count(self) -> int:
         return sum(len(w.passages) for w in self.works)
+
+    @property
+    def translation_coverage(self) -> float:
+        """Fraction of retrieved passages that have a translation available."""
+        total = self.passage_count
+        if not total:
+            return 0.0
+        return len(self.translations) / total
 
     @property
     def citable_passage_ids(self) -> set[str]:
@@ -103,8 +131,12 @@ class EvidencePackage:
         return resolved / total
 
 
-def fetch_ayah_texts(conn: psycopg.Connection, refs: list[AyahRef]) -> list[AyahText]:
-    """Load the Quranic text for the queried references."""
+def fetch_ayah_texts(
+    conn: psycopg.Connection,
+    refs: list[AyahRef],
+    language: Language = Language.AR,
+) -> list[AyahText]:
+    """Load the Quranic text for the queried references, with translations."""
     if not refs:
         return []
 
@@ -128,6 +160,32 @@ def fetch_ayah_texts(conn: psycopg.Connection, refs: list[AyahRef]) -> list[Ayah
         )
         rows = cur.fetchall()
 
+    translations: dict[tuple[int, int], list[AyahTranslation]] = {}
+    if language is not Language.AR:
+        with conn.cursor() as cur:
+            cur.execute(
+                f"""
+                SELECT surah_number, ayah_number, text, translator_name,
+                       translation_slug
+                FROM ayah_translation
+                WHERE language = %s AND ({' OR '.join(
+                    '(surah_number = %s AND ayah_number BETWEEN %s AND %s)'
+                    for _ in refs
+                )})
+                ORDER BY translation_slug
+                """,
+                [language.value, *params],
+            )
+            for r in cur.fetchall():
+                translations.setdefault((r["surah_number"], r["ayah_number"]), []).append(
+                    AyahTranslation(
+                        text=r["text"],
+                        language=language,
+                        translator_name=r["translator_name"],
+                        translation_slug=r["translation_slug"],
+                    )
+                )
+
     return [
         AyahText(
             surah_number=r["surah_number"],
@@ -135,6 +193,7 @@ def fetch_ayah_texts(conn: psycopg.Connection, refs: list[AyahRef]) -> list[Ayah
             surah_name_ar=r["name_ar"],
             surah_name_en=r["name_en_translit"],
             text_uthmani=r["text_uthmani"],
+            translations=tuple(translations.get((r["surah_number"], r["ayah_number"]), [])),
         )
         for r in rows
     ]
@@ -195,11 +254,19 @@ def assemble(
         query_type=classification.query_type,
         classification_confidence=classification.confidence,
         refs=classification.refs,
-        ayah_texts=fetch_ayah_texts(conn, classification.refs),
+        ayah_texts=fetch_ayah_texts(conn, classification.refs, user_language),
         works=works,
         trace=trace,
         rules_applied=plan.explain(),
     )
+
+    # Translations are looked up, never produced here: assembly must stay a
+    # database read so that a query cannot silently become a paid model call.
+    # Missing translations are requested explicitly by the caller.
+    if user_language is not Language.AR:
+        package.translations = fetch_many(
+            conn, [p.passage_id for w in works for p in w.passages], user_language
+        )
 
     # Notes are user-facing statements about the limits of this result set. They
     # exist so a limitation is disclosed rather than left for the reader to infer.

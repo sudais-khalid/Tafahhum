@@ -25,7 +25,7 @@ import psycopg
 
 from tafahhum.arabic.normalize import normalize_for_matching
 from tafahhum.core.config import get_settings
-from tafahhum.core.enums import EvidenceType, VerificationStatus
+from tafahhum.core.enums import EvidenceType, Language, VerificationStatus
 from tafahhum.quran.reference import AyahRef
 from tafahhum.retrieval.models import Citation, RetrievedPassage, RetrievalTrace
 
@@ -36,6 +36,7 @@ _PROJECTION = """
     p.verified_text         AS verified_text,
     p.normalized_text       AS normalized_text,
     p.evidence_kind         AS evidence_kind,
+    p.language              AS passage_language,
     p.verification_status   AS verification_status,
     p.citation_precision    AS citation_precision,
     p.volume                AS volume,
@@ -50,6 +51,10 @@ _PROJECTION = """
     e.slug                  AS edition_slug,
     e.publisher             AS edition_publisher,
     e.publication_year      AS edition_year,
+    e.digital_source_url    AS edition_source_url,
+    e.copyright_status      AS edition_copyright_status,
+    e.license_note          AS edition_license_note,
+    e.verification_status   AS edition_verification_status,
     sp.image_uri            AS scan_page_uri,
     pa.surah_number         AS surah_number,
     pa.ayah_start           AS ayah_start,
@@ -79,6 +84,10 @@ def _to_passage(row: dict) -> RetrievedPassage:
         edition_slug=row["edition_slug"],
         edition_publisher=row["edition_publisher"],
         edition_year=row["edition_year"],
+        edition_source_url=row["edition_source_url"],
+        edition_copyright_status=row["edition_copyright_status"],
+        edition_license_note=row["edition_license_note"],
+        edition_verification_status=VerificationStatus(row["edition_verification_status"]),
         volume=row["volume"],
         page_start=row["page_start"],
         page_end=row["page_end"],
@@ -90,6 +99,7 @@ def _to_passage(row: dict) -> RetrievedPassage:
         # Display prefers the human-verified reading, never the normalised form.
         display_text=row["verified_text"] or row["raw_text"],
         normalized_text=row["normalized_text"],
+        language=Language(row["passage_language"]),
         evidence_kind=EvidenceType(row["evidence_kind"]),
         verification_status=VerificationStatus(row["verification_status"]),
         surah_number=row["surah_number"],
