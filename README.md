@@ -55,11 +55,14 @@ Early implementation. See [docs/ROADMAP.md](docs/ROADMAP.md) for phases and
 ## Quick start
 
 ```bash
-docker compose up -d db          # PostgreSQL 17 + pgvector
-cd backend && uv sync
-uv run alembic-less-migrate      # applies migrations/*.sql in order
+docker compose up -d db                    # PostgreSQL 17 + pgvector, port 5544
+cd backend && uv venv && uv pip install -e ".[dev]"
+uv run python -m tafahhum.db.migrate       # applies migrations/*.sql in order
+python ../scripts/fetch_corpus.py          # seed a development corpus
 uv run pytest
 uv run uvicorn tafahhum.api.app:app --reload
+
+cd frontend && npm install && npm run dev  # http://localhost:3000
 ```
 
 ## Documentation
