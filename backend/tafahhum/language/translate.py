@@ -215,7 +215,9 @@ class OllamaTranslator:
         self,
         model: str | None = None,
         host: str = "http://127.0.0.1:11434",
-        timeout: float = 300.0,
+        # A 1,200-character passage can take well over five minutes on CPU, and a
+        # timeout mid-generation throws away work already done.
+        timeout: float = 1200.0,
     ):
         self.model = model or os.environ.get("TAFAHHUM_OLLAMA_MODEL", "")
         self.host = host.rstrip("/")

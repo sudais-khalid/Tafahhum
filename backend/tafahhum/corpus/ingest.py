@@ -33,6 +33,7 @@ from tafahhum.core.enums import (
     CopyrightStatus,
     CorpusStatus,
     EvidenceType,
+    HistoricalPeriod,
     Language,
     VerificationStatus,
 )
@@ -51,6 +52,16 @@ class SourceWork:
     source_url: str
     source_name: str
     license_note: str
+    # Classification, attributed to whoever made it. UNCLASSIFIED with a NULL
+    # source is the honest default; the schema rejects a claim without a source.
+    tradition: str = "UNCLASSIFIED"
+    method: str = "UNCLASSIFIED"
+    classification_source: str | None = None
+    classification_source_url: str | None = None
+    classification_note: str | None = None
+    catalogue_rank: int = 500
+    is_default_source: bool = False
+    death_year_hijri: int | None = None
 
 
 @dataclass(frozen=True)
@@ -89,20 +100,30 @@ def upsert_mufassir(cur: psycopg.Cursor, work: SourceWork) -> str:
     one that had been verified against a biographical source.
     """
     slug = f"mufassir-{normalize_key(work.author_name_en).replace(' ', '-')}"
+    # A death year is written only where the catalogue reference states one, and
+    # it stays UNVERIFIED until a bibliographical source attests it to a page.
     cur.execute(
         """
-        INSERT INTO mufassir (slug, name_ar, name_en, verification_status, biography_note)
-        VALUES (%s, %s, %s, %s, %s)
-        ON CONFLICT (slug) DO UPDATE SET name_en = EXCLUDED.name_en
+        INSERT INTO mufassir
+            (slug, name_ar, name_en, death_year_hijri, period,
+             verification_status, biography_note)
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
+        ON CONFLICT (slug) DO UPDATE SET
+            name_en = EXCLUDED.name_en,
+            death_year_hijri = COALESCE(mufassir.death_year_hijri, EXCLUDED.death_year_hijri),
+            period = EXCLUDED.period
         RETURNING id
         """,
         (
             slug,
             work.author_name_ar,
             work.author_name_en,
+            work.death_year_hijri,
+            HistoricalPeriod.from_death_year_hijri(work.death_year_hijri).value,
             VerificationStatus.UNVERIFIED.value,
-            "Biographical data not supplied by the text source. Dates, places, and "
-            "teacher/student relations require a bibliographical source.",
+            "Dates where present come from a tertiary catalogue reference and are "
+            "unverified. Places and teacher/student relations require a "
+            "bibliographical source.",
         ),
     )
     return cur.fetchone()[0]
@@ -113,9 +134,21 @@ def upsert_work(cur: psycopg.Cursor, work: SourceWork, author_id: str) -> str:
         """
         INSERT INTO tafsir_work
             (slug, author_id, title_ar, title_en, language, corpus_state,
-             verification_status, attribution_confidence, notes)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-        ON CONFLICT (slug) DO UPDATE SET corpus_state = EXCLUDED.corpus_state
+             verification_status, attribution_confidence, notes,
+             tradition, method, classification_source, classification_source_url,
+             classification_status, classification_note, catalogue_rank,
+             is_default_source)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s,
+                %s, %s, %s, %s, %s, %s, %s, %s)
+        ON CONFLICT (slug) DO UPDATE SET
+            corpus_state = EXCLUDED.corpus_state,
+            tradition = EXCLUDED.tradition,
+            method = EXCLUDED.method,
+            classification_source = EXCLUDED.classification_source,
+            classification_source_url = EXCLUDED.classification_source_url,
+            classification_note = EXCLUDED.classification_note,
+            catalogue_rank = EXCLUDED.catalogue_rank,
+            is_default_source = EXCLUDED.is_default_source
         RETURNING id
         """,
         (
@@ -129,6 +162,14 @@ def upsert_work(cur: psycopg.Cursor, work: SourceWork, author_id: str) -> str:
             VerificationStatus.UNVERIFIED.value,
             f"Ingested from {work.source_name}. Attribution follows the source and "
             f"has not been checked against a bibliographical work.",
+            work.tradition,
+            work.method,
+            work.classification_source,
+            work.classification_source_url,
+            VerificationStatus.UNVERIFIED.value,
+            work.classification_note,
+            work.catalogue_rank,
+            work.is_default_source,
         ),
     )
     return cur.fetchone()[0]

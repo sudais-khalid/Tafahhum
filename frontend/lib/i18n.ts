@@ -50,6 +50,13 @@ type Copy = {
   translationPendingNote: string;
   translationSlowNote: string;
   translationRejected: string;
+  sourcesChoose: string;
+  sourcesHide: string;
+  sourcesSelected: (n: number, total: number, passages: number) => string;
+  classificationNote: string;
+  passagesWord: string;
+  tradition: (key: string) => string;
+  method: (key: string) => string;
   referencesHeading: string;
   sourcesConsulted: (n: number) => string;
   refDied: string;
@@ -115,6 +122,40 @@ const en: Copy = {
     "Translating on the local model — this takes a few minutes per passage on CPU. The Arabic above is complete and unaffected.",
   translationRejected:
     "The local model produced unusable output for this language and it was discarded rather than shown.",
+  sourcesChoose: "Choose sources",
+  sourcesHide: "Hide sources",
+  sourcesSelected: (n, total, passages) =>
+    `${n} of ${total} works selected · ${passages.toLocaleString()} passages searched`,
+  classificationNote:
+    "School and method come from a tertiary reference and are unverified. Works that reference does not list are shown as unclassified rather than assigned a school by inference.",
+  passagesWord: "passages",
+  tradition: (k) =>
+    ({
+      EARLY: "Early",
+      SUNNI: "Sunni",
+      SUNNI_SUFI: "Sunni — Sufi",
+      SUNNI_SALAFI: "Sunni — Salafi",
+      MODERNIST: "Modernist",
+      MUTAZILA: "Mu'tazila",
+      TWELVER_SHIA: "Twelver Shia",
+      ZAYDI_SHIA: "Zaydi Shia",
+      IBADI: "Ibadi",
+      UNCLASSIFIED: "Classification pending",
+    })[k] ?? k,
+  method: (k) =>
+    ({
+      BI_AL_MATHUR: "transmitted reports",
+      BI_AL_RAY: "considered opinion",
+      FIQHI: "legal",
+      LUGHAWI: "linguistic",
+      BALAGHI: "rhetorical",
+      SUFI_ISHARI: "allusive",
+      KALAMI: "theological",
+      QIRAAT: "variant readings",
+      GHARIB: "rare vocabulary",
+      MIXED: "mixed method",
+      UNCLASSIFIED: "method not recorded",
+    })[k] ?? k,
   referencesHeading: "References",
   sourcesConsulted: (n) => `${n} sources consulted`,
   refDied: "Died",
@@ -178,6 +219,40 @@ const ar: Copy = {
   translationSlowNote:
     "الترجمة جارية على النموذج المحلي، وتستغرق دقائق لكل نص. والنص العربي أعلاه كامل وغير متأثر.",
   translationRejected: "أنتج النموذج المحلي مخرجات غير صالحة لهذه اللغة، فحُذفت ولم تُعرض.",
+  sourcesChoose: "اختر المصادر",
+  sourcesHide: "إخفاء المصادر",
+  sourcesSelected: (n, total, passages) =>
+    `${n} من ${total} كتابًا · ${passages} نصًا في نطاق البحث`,
+  classificationNote:
+    "المذهب والمنهج مأخوذان من مرجع ثانوي وهما غير موثقين. والكتب التي لا يذكرها ذلك المرجع تُعرض بلا تصنيف بدل نسبتها إلى مذهب بالاستنتاج.",
+  passagesWord: "نصًا",
+  tradition: (k) =>
+    ({
+      EARLY: "المتقدمون",
+      SUNNI: "أهل السنة",
+      SUNNI_SUFI: "أهل السنة — الصوفية",
+      SUNNI_SALAFI: "أهل السنة — السلفية",
+      MODERNIST: "المعاصرون",
+      MUTAZILA: "المعتزلة",
+      TWELVER_SHIA: "الشيعة الإمامية",
+      ZAYDI_SHIA: "الزيدية",
+      IBADI: "الإباضية",
+      UNCLASSIFIED: "قيد التصنيف",
+    })[k] ?? k,
+  method: (k) =>
+    ({
+      BI_AL_MATHUR: "بالمأثور",
+      BI_AL_RAY: "بالرأي",
+      FIQHI: "فقهي",
+      LUGHAWI: "لغوي",
+      BALAGHI: "بلاغي",
+      SUFI_ISHARI: "إشاري",
+      KALAMI: "كلامي",
+      QIRAAT: "قراءات",
+      GHARIB: "غريب",
+      MIXED: "منهج مختلط",
+      UNCLASSIFIED: "المنهج غير مسجل",
+    })[k] ?? k,
   referencesHeading: "المراجع",
   sourcesConsulted: (n) => `${n} من المصادر المعتمدة`,
   refDied: "الوفاة",
@@ -242,6 +317,40 @@ const ur: Copy = {
     "مقامی ماڈل پر ترجمہ جاری ہے؛ ہر عبارت پر چند منٹ لگتے ہیں۔ اوپر کا عربی متن مکمل اور غیر متاثر ہے۔",
   translationRejected:
     "مقامی ماڈل نے اس زبان کے لیے ناقابلِ استعمال نتیجہ دیا، جسے دکھانے کے بجائے رد کر دیا گیا۔",
+  sourcesChoose: "مآخذ منتخب کیجیے",
+  sourcesHide: "مآخذ چھپائیے",
+  sourcesSelected: (n, total, passages) =>
+    `${total} میں سے ${n} کتابیں · ${passages} عبارات زیرِ تلاش`,
+  classificationNote:
+    "مسلک اور منہج ایک ثانوی مرجع سے لیے گئے ہیں اور غیر مصدقہ ہیں۔ جن کتابوں کا ذکر اس مرجع میں نہیں، انہیں قیاس سے کسی مسلک میں شامل کرنے کے بجائے غیر مصنف دکھایا گیا ہے۔",
+  passagesWord: "عبارات",
+  tradition: (k) =>
+    ({
+      EARLY: "متقدمین",
+      SUNNI: "اہلِ سنت",
+      SUNNI_SUFI: "اہلِ سنت — صوفیہ",
+      SUNNI_SALAFI: "اہلِ سنت — سلفیہ",
+      MODERNIST: "جدید",
+      MUTAZILA: "معتزلہ",
+      TWELVER_SHIA: "اثنا عشری شیعہ",
+      ZAYDI_SHIA: "زیدی شیعہ",
+      IBADI: "اباضی",
+      UNCLASSIFIED: "تصنیف باقی",
+    })[k] ?? k,
+  method: (k) =>
+    ({
+      BI_AL_MATHUR: "بالمأثور",
+      BI_AL_RAY: "بالرائے",
+      FIQHI: "فقہی",
+      LUGHAWI: "لغوی",
+      BALAGHI: "بلاغی",
+      SUFI_ISHARI: "اشاری",
+      KALAMI: "کلامی",
+      QIRAAT: "قراءات",
+      GHARIB: "غریب الفاظ",
+      MIXED: "مخلوط منہج",
+      UNCLASSIFIED: "منہج درج نہیں",
+    })[k] ?? k,
   referencesHeading: "حوالہ جات",
   sourcesConsulted: (n) => `${n} مآخذ سے استفادہ`,
   refDied: "وفات",

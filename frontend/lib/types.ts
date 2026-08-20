@@ -137,3 +137,44 @@ export interface TranslationResult {
   cached: boolean;
   notice: string;
 }
+
+export interface CatalogueWork {
+  slug: string;
+  title_ar: string;
+  title_en: string | null;
+  tradition: string;
+  method: string;
+  classification_source: string | null;
+  classification_source_url: string | null;
+  classification_status: string;
+  classification_note: string | null;
+  catalogue_rank: number;
+  is_default_source: boolean;
+  author_ar: string | null;
+  author_en: string | null;
+  death_year_hijri: number | null;
+  period: string | null;
+  passage_count: number;
+  ayah_count: number;
+}
+
+export interface Preset {
+  key: string;
+  name_en: string;
+  name_ar: string;
+  name_ur: string;
+  description_en: string;
+  work_slugs: string[];
+  work_count: number;
+}
+
+export interface CatalogueResponse {
+  works: CatalogueWork[];
+  presets: Preset[];
+  counts: {
+    works: number;
+    passages: number;
+    by_tradition: Record<string, number>;
+  };
+  classification_note: string;
+}

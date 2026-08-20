@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AyahBlock, WorkGroup } from "@/components/Evidence";
 import { References } from "@/components/References";
+import { SourceSelector } from "@/components/SourceSelector";
 import { TracePanel } from "@/components/TracePanel";
 import { COPY, DIR, LANGUAGES } from "@/lib/i18n";
 import type { PassageTranslation, QueryResult, UiLanguage } from "@/lib/types";
@@ -24,6 +25,9 @@ export default function Home() {
   const [translations, setTranslations] = useState<Record<string, PassageTranslation>>({});
   const [pending, setPending] = useState<Set<string>>(new Set());
   const [translationNotice, setTranslationNotice] = useState<string | null>(null);
+  // Which works retrieval is restricted to. `null` means "not yet loaded"; the
+  // selector fills it from the default preset on mount.
+  const [sources, setSources] = useState<string[] | null>(null);
   const runId = useRef(0);
 
   const t = COPY[language];
@@ -50,7 +54,12 @@ export default function Home() {
         const res = await fetch(`${API}/api/v1/query`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ query, language, mode: "DETAILED" }),
+          body: JSON.stringify({
+            query,
+            language,
+            mode: "DETAILED",
+            works: sources && sources.length > 0 ? sources : undefined,
+          }),
         });
         if (!res.ok) throw new Error(String(res.status));
         const data = (await res.json()) as QueryResult;
@@ -67,7 +76,7 @@ export default function Home() {
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [language, t.error],
+    [language, t.error, sources],
   );
 
   /* Request the translations the server did not already have cached.
@@ -198,6 +207,12 @@ export default function Home() {
               ))}
             </div>
           </div>
+
+          <SourceSelector
+            language={language}
+            selected={sources}
+            onChange={(slugs) => setSources(slugs)}
+          />
 
           <div className="examples">
             {t.examples.map((ex) => (

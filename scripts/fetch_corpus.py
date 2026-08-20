@@ -53,89 +53,16 @@ AYAH_SET: list[tuple[int, int]] = (
     + [(112, a) for a in range(1, 5)]
 )
 
-# Works to seed, most historically significant first.
-WORKS: list[dict[str, str]] = [
-    {
-        "slug": "tabari-jami-al-bayan",
-        "source_slug": "ar-tafsir-al-tabari",
-        "title_ar": "جامع البيان عن تأويل آي القرآن",
-        "title_en": "Jami al-Bayan an Tawil Ay al-Quran",
-        "author_ar": "محمد بن جرير الطبري",
-        "author_en": "Muhammad ibn Jarir al-Tabari",
-    },
-    {
-        "slug": "qurtubi-al-jami-li-ahkam",
-        "source_slug": "ar-tafseer-al-qurtubi",
-        "title_ar": "الجامع لأحكام القرآن",
-        "title_en": "Al-Jami li-Ahkam al-Quran",
-        "author_ar": "محمد بن أحمد القرطبي",
-        "author_en": "Muhammad ibn Ahmad al-Qurtubi",
-    },
-    {
-        "slug": "ibn-kathir-tafsir-al-quran-al-azim",
-        "source_slug": "ar-tafsir-ibn-kathir",
-        "title_ar": "تفسير القرآن العظيم",
-        "title_en": "Tafsir al-Quran al-Azim",
-        "author_ar": "إسماعيل بن عمر ابن كثير",
-        "author_en": "Ismail ibn Umar Ibn Kathir",
-    },
-    {
-        "slug": "baghawi-maalim-al-tanzil",
-        "source_slug": "ar-tafsir-al-baghawi",
-        "title_ar": "معالم التنزيل",
-        "title_en": "Maalim al-Tanzil",
-        "author_ar": "الحسين بن مسعود البغوي",
-        "author_en": "al-Husayn ibn Masud al-Baghawi",
-    },
-    {
-        "slug": "zamakhshari-al-kashshaf",
-        "source_slug": "al-kashshaf-al-zamakhshari",
-        "title_ar": "الكشاف عن حقائق التنزيل",
-        "title_en": "Al-Kashshaf an Haqaiq al-Tanzil",
-        "author_ar": "محمود بن عمر الزمخشري",
-        "author_en": "Mahmud ibn Umar al-Zamakhshari",
-    },
-    {
-        "slug": "razi-mafatih-al-ghayb",
-        "source_slug": "tafsir-al-razi",
-        "title_ar": "مفاتيح الغيب",
-        "title_en": "Mafatih al-Ghayb",
-        "author_ar": "فخر الدين الرازي",
-        "author_en": "Fakhr al-Din al-Razi",
-    },
-    {
-        "slug": "baydawi-anwar-al-tanzil",
-        "source_slug": "tafsir-al-baydawi",
-        "title_ar": "أنوار التنزيل وأسرار التأويل",
-        "title_en": "Anwar al-Tanzil wa Asrar al-Tawil",
-        "author_ar": "عبد الله بن عمر البيضاوي",
-        "author_en": "Abdullah ibn Umar al-Baydawi",
-    },
-    {
-        "slug": "ibn-atiyyah-al-muharrar-al-wajiz",
-        "source_slug": "al-muharrar-al-wajiz-ibn-atiyyah",
-        "title_ar": "المحرر الوجيز",
-        "title_en": "Al-Muharrar al-Wajiz",
-        "author_ar": "عبد الحق بن غالب ابن عطية",
-        "author_en": "Abd al-Haqq ibn Ghalib Ibn Atiyyah",
-    },
-    {
-        "slug": "jalalayn",
-        "source_slug": "ar-tafsir-al-jalalayn",
-        "title_ar": "تفسير الجلالين",
-        "title_en": "Tafsir al-Jalalayn",
-        "author_ar": "جلال الدين المحلي وجلال الدين السيوطي",
-        "author_en": "Jalal al-Din al-Mahalli and Jalal al-Din al-Suyuti",
-    },
-    {
-        "slug": "saadi-taysir-al-karim",
-        "source_slug": "ar-tafsir-as-saadi",
-        "title_ar": "تيسير الكريم الرحمن",
-        "title_en": "Taysir al-Karim al-Rahman",
-        "author_ar": "عبد الرحمن بن ناصر السعدي",
-        "author_en": "Abd al-Rahman ibn Nasir al-Sadi",
-    },
-]
+# Works come from the catalogue, which carries the classification and its
+# provenance. Adding a work is a catalogue edit, not a change here.
+from tafahhum.corpus.catalogue import (  # noqa: E402
+    CATALOGUE,
+    CLASSIFICATION_SOURCE,
+    CLASSIFICATION_SOURCE_URL,
+    CatalogueEntry,
+)
+
+WORKS: list[CatalogueEntry] = sorted(CATALOGUE, key=lambda e: e.rank)
 
 
 def fetch_tafsir(client: httpx.Client, source_slug: str, surah: int, ayah: int) -> None:
@@ -162,9 +89,9 @@ def fetch_tafsir(client: httpx.Client, source_slug: str, surah: int, ayah: int) 
 def fetch_all_tafsir() -> None:
     print(f"fetching {len(WORKS)} works x {len(AYAH_SET)} ayahs ...")
     with httpx.Client(follow_redirects=True) as client:
-        with ThreadPoolExecutor(max_workers=8) as pool:
+        with ThreadPoolExecutor(max_workers=12) as pool:
             futures = [
-                pool.submit(fetch_tafsir, client, w["source_slug"], s, a)
+                pool.submit(fetch_tafsir, client, w.source_slug, s, a)
                 for w in WORKS
                 for (s, a) in AYAH_SET
             ]
@@ -284,26 +211,39 @@ def main() -> int:
         print(f"  {n} ayahs")
 
         print("ingesting Tafsir works ...")
-        total = 0
+        total = skipped = 0
         for w in WORKS:
-            commentaries = load_cached(w["source_slug"])
-            if not commentaries:
-                print(f"  ! no cached data for {w['slug']}")
+            commentaries = load_cached(w.source_slug)
+            if not any(c.text.strip() for c in commentaries):
+                print(f"  - {w.slug}: no text available from source")
+                skipped += 1
                 continue
             work = SourceWork(
-                slug=w["slug"],
-                title_ar=w["title_ar"],
-                title_en=w["title_en"],
-                author_name_ar=w["author_ar"],
-                author_name_en=w["author_en"],
-                source_url=f"{TAFSIR_BASE}/{w['source_slug']}",
+                slug=w.slug,
+                title_ar=w.title_ar,
+                title_en=w.title_en,
+                author_name_ar=w.author_ar,
+                author_name_en=w.author_en,
+                source_url=f"{TAFSIR_BASE}/{w.source_slug}",
                 source_name=SOURCE_NAME,
                 license_note=LICENSE_NOTE,
+                tradition=w.tradition,
+                method=w.method,
+                classification_source=(
+                    None if w.tradition == "UNCLASSIFIED" else CLASSIFICATION_SOURCE
+                ),
+                classification_source_url=(
+                    None if w.tradition == "UNCLASSIFIED" else CLASSIFICATION_SOURCE_URL
+                ),
+                classification_note=w.note,
+                catalogue_rank=w.rank,
+                is_default_source=w.default,
+                death_year_hijri=w.death_hijri,
             )
             report = ingest_commentaries(conn, work, commentaries)
             total += report.passages_written
             print(f"  {report}")
-        print(f"total passages: {total}")
+        print(f"total passages: {total}; {skipped} work(s) had no text")
     return 0
 
 

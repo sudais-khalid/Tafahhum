@@ -25,6 +25,13 @@ class QueryIn(BaseModel):
     works: list[str] | None = Field(
         default=None, description="Restrict retrieval to these work slugs."
     )
+    preset: str | None = Field(
+        default=None,
+        description=(
+            "Named source selection (see GET /catalogue). Ignored when `works` "
+            "is given, since an explicit list is a more specific instruction."
+        ),
+    )
 
 
 class CitationOut(BaseModel):

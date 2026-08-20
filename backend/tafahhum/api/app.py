@@ -69,13 +69,26 @@ def query(payload: QueryIn) -> QueryOut:
     downstream concern that consumes exactly this payload and nothing else.
     """
     with connection() as conn:
+        work_slugs = payload.works
+        # An explicit list of works is a more specific instruction than a preset,
+        # so it wins; a preset only fills in when nothing was named.
+        if not work_slugs and payload.preset:
+            preset = next((p for p in PRESETS if p["key"] == payload.preset), None)
+            if preset is None:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"unknown preset {payload.preset!r}; see GET {API}/catalogue",
+                )
+            with conn.cursor() as cur:
+                work_slugs = _resolve_preset(cur, preset)
+
         package = run_query(
             conn,
             QueryRequest(
                 text=payload.query,
                 user_language=payload.language,
                 limit=payload.limit,
-                work_slugs=payload.works,
+                work_slugs=work_slugs,
             ),
         )
     return serialise(package)
@@ -292,6 +305,165 @@ def translate(passage_id: str, language: Language = Query()) -> dict:
         "notice": (
             "This is a translation, not the source. The original is shown beside "
             "it and is what citations refer to."
+        ),
+    }
+
+
+# Curated starting points. Fifty works is too many to choose between from a
+# cold start, and "pick your sources" is only a real choice if the options mean
+# something to someone who is not already a specialist. Each preset is a query
+# over catalogue metadata, not a hand-maintained list, so it stays correct as
+# works are added.
+PRESETS: list[dict] = [
+    {
+        "key": "sunni-core",
+        "name_en": "Sunni core",
+        "name_ar": "الأمهات السنية",
+        "name_ur": "بنیادی سنی تفاسیر",
+        "description_en": "Widely-cited works a named reference classifies as Sunni.",
+        "traditions": ["SUNNI", "SUNNI_SUFI", "SUNNI_SALAFI"],
+        "default_only": True,
+    },
+    {
+        "key": "sunni-all",
+        "name_en": "All Sunni works",
+        "name_ar": "جميع التفاسير السنية",
+        "name_ur": "تمام سنی تفاسیر",
+        "description_en": "Every indexed work classified under a Sunni heading.",
+        "traditions": ["SUNNI", "SUNNI_SUFI", "SUNNI_SALAFI"],
+    },
+    {
+        "key": "mathur",
+        "name_en": "Transmitted reports",
+        "name_ar": "التفسير بالمأثور",
+        "name_ur": "تفسیر بالمأثور",
+        "description_en": "Commentary built on transmitted reports and chains.",
+        "methods": ["BI_AL_MATHUR"],
+    },
+    {
+        "key": "fiqhi",
+        "name_en": "Legal commentary",
+        "name_ar": "أحكام القرآن",
+        "name_ur": "احکام القرآن",
+        "description_en": "Works focused on legal rulings drawn from the text.",
+        "methods": ["FIQHI"],
+    },
+    {
+        "key": "lughawi",
+        "name_en": "Language and rhetoric",
+        "name_ar": "اللغة والبلاغة",
+        "name_ur": "لغت و بلاغت",
+        "description_en": "Grammatical, syntactic, and rhetorical analysis.",
+        "methods": ["LUGHAWI", "BALAGHI", "GHARIB"],
+    },
+    {
+        "key": "qiraat",
+        "name_en": "Variant readings",
+        "name_ar": "القراءات",
+        "name_ur": "قراءات",
+        "description_en": "Works on the variant readings of the text.",
+        "methods": ["QIRAAT"],
+    },
+    {
+        "key": "commentaries",
+        "name_en": "All commentaries",
+        "name_ar": "جميع التفاسير",
+        "name_ur": "تمام تفاسیر",
+        "description_en": (
+            "Every work that comments on meaning, excluding grammar and "
+            "recitation apparatus."
+        ),
+        "methods": [
+            "BI_AL_MATHUR", "BI_AL_RAY", "FIQHI", "BALAGHI",
+            "SUFI_ISHARI", "KALAMI", "MIXED",
+        ],
+    },
+    {
+        "key": "everything",
+        "name_en": "Everything indexed",
+        "name_ar": "كل المفهرس",
+        "name_ur": "تمام فہرست شدہ",
+        "description_en": "All works, including non-Sunni and unclassified ones.",
+    },
+]
+
+
+def _resolve_preset(cur, preset: dict) -> list[str]:
+    """Turn a preset into the work slugs it currently selects."""
+    clauses = ["corpus_state = 'PUBLISHED'"]
+    params: list[object] = []
+    if preset.get("traditions"):
+        clauses.append("tradition::text = ANY(%s)")
+        params.append(preset["traditions"])
+    if preset.get("methods"):
+        clauses.append("method::text = ANY(%s)")
+        params.append(preset["methods"])
+    if preset.get("default_only"):
+        clauses.append("is_default_source")
+    cur.execute(
+        f"SELECT slug FROM tafsir_work WHERE {' AND '.join(clauses)} "
+        f"ORDER BY catalogue_rank, slug",
+        params,
+    )
+    return [r["slug"] for r in cur.fetchall()]
+
+
+@app.get(f"{API}/catalogue")
+def catalogue() -> dict:
+    """The selectable corpus, with classification and its provenance.
+
+    Classification is reported with the source that made it and its verification
+    state, so a reader filtering by school can see that they are filtering on a
+    tertiary reference rather than on Tafahhum's judgement.
+    """
+    with connection() as conn, conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT w.slug, w.title_ar, w.title_en,
+                   w.tradition::text AS tradition, w.method::text AS method,
+                   w.classification_source, w.classification_source_url,
+                   w.classification_status::text AS classification_status,
+                   w.classification_note, w.catalogue_rank, w.is_default_source,
+                   m.name_ar AS author_ar, m.name_en AS author_en,
+                   m.death_year_hijri, m.period::text AS period,
+                   count(p.id) AS passage_count,
+                   count(DISTINCT (pa.surah_number, pa.ayah_start)) AS ayah_count
+            FROM tafsir_work w
+            LEFT JOIN mufassir m ON m.id = w.author_id
+            LEFT JOIN passage p ON p.tafsir_work_id = w.id
+            LEFT JOIN passage_ayah pa ON pa.passage_id = p.id
+            WHERE w.corpus_state = 'PUBLISHED'
+            GROUP BY w.slug, w.title_ar, w.title_en, w.tradition, w.method,
+                     w.classification_source, w.classification_source_url,
+                     w.classification_status, w.classification_note,
+                     w.catalogue_rank, w.is_default_source,
+                     m.name_ar, m.name_en, m.death_year_hijri, m.period
+            ORDER BY w.catalogue_rank, w.slug
+            """
+        )
+        works = cur.fetchall()
+
+        presets = []
+        for preset in PRESETS:
+            slugs = _resolve_preset(cur, preset)
+            presets.append({**preset, "work_slugs": slugs, "work_count": len(slugs)})
+
+    by_tradition: dict[str, int] = {}
+    for w in works:
+        by_tradition[w["tradition"]] = by_tradition.get(w["tradition"], 0) + 1
+
+    return {
+        "works": works,
+        "presets": presets,
+        "counts": {
+            "works": len(works),
+            "passages": sum(w["passage_count"] for w in works),
+            "by_tradition": by_tradition,
+        },
+        "classification_note": (
+            "School and method are taken from a tertiary reference and are "
+            "UNVERIFIED. Works the reference does not list are marked "
+            "UNCLASSIFIED rather than assigned a school by inference."
         ),
     }
 
