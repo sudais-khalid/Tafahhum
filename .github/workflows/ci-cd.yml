@@ -102,25 +102,44 @@ jobs:
     permissions:
       contents: read
       security-events: write
+      # upload-sarif reads workflow-run metadata to attach results to the run.
+      # Without this it fails with "Resource not accessible by integration".
+      actions: read
     steps:
       - uses: actions/checkout@v4
 
+      # Findings are printed to the log first, so they are visible whatever
+      # happens to the upload below.
       - name: Scan dependencies and config
         uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: fs
           scanners: vuln,secret,misconfig
-          format: sarif
-          output: trivy.sarif
+          format: table
           # Report everything, fail on nothing: a CVE in a transitive dependency
           # should be visible without blocking an unrelated change. Tighten to
           # exit-code 1 once the backlog is at zero.
           exit-code: "0"
           severity: CRITICAL,HIGH
 
-      - name: Upload results
-        uses: github/codeql-action/upload-sarif@v3
+      - name: Scan again for the Security tab
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: fs
+          scanners: vuln,secret,misconfig
+          format: sarif
+          output: trivy.sarif
+          exit-code: "0"
+          severity: CRITICAL,HIGH
+
+      # Best-effort. Code scanning upload needs GitHub Advanced Security on a
+      # private repository; without that entitlement this step cannot succeed,
+      # and a missing subscription should not fail an otherwise good build. The
+      # findings are already in the log above either way.
+      - name: Upload results to the Security tab
+        uses: github/codeql-action/upload-sarif@v4
         if: always()
+        continue-on-error: true
         with:
           sarif_file: trivy.sarif
 

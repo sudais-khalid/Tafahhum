@@ -8,6 +8,8 @@ model itself.
 
 from __future__ import annotations
 
+import shutil
+
 import psycopg
 import pytest
 
@@ -87,8 +89,30 @@ class TestOcrResult:
 
 
 class TestEngineSelection:
-    def test_tesseract_is_available_here(self):
-        assert TesseractEngine().available()
+    def test_available_reports_whether_tesseract_is_installed(self):
+        """`available()` must report the environment, not assume one.
+
+        The earlier version of this test asserted that Tesseract *is* installed,
+        which is a fact about the machine that happened to run it rather than
+        anything about the code. It passed locally and failed on CI, where no
+        Tesseract is present — which is exactly the situation `available()`
+        exists to detect.
+        """
+        assert TesseractEngine().available() == (shutil.which("tesseract") is not None)
+
+    @pytest.mark.skipif(shutil.which("tesseract") is None, reason="tesseract not installed")
+    def test_reads_a_page_when_tesseract_is_present(self, tmp_path):
+        """Only meaningful where the binary exists; skipped cleanly where it does not."""
+        engine = TesseractEngine()
+        blank = tmp_path / "blank.png"
+        # A 1x1 PNG: the point is that the engine runs and reports, not what it reads.
+        blank.write_bytes(bytes.fromhex(
+            "89504e470d0a1a0a0000000d494844520000000100000001080600000"
+            "01f15c4890000000d49444154789c636000000200010005000109f0f3"
+            "710000000049454e44ae426082"
+        ))
+        result = engine.read_page(blank, language=Language.AR)
+        assert result.engine == "tesseract"
 
     def test_explicit_preference_is_honoured(self):
         assert select_engine("tesseract").name == "tesseract"
