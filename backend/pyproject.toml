@@ -3,7 +3,6 @@ name = "tafahhum"
 version = "0.1.0"
 description = "A research platform for the historical tradition of Quranic interpretation"
 authors = [{ name = "Sudais Khalid" }]
-readme = "../README.md"
 requires-python = ">=3.12"
 
 dependencies = [
