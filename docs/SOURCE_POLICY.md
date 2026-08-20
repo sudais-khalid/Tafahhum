@@ -21,6 +21,17 @@ This repository contains **no Tafsir text and no Quranic text**. The corpus is
 constructed by ingestion from sources the operator supplies and is legally entitled to
 use. Nothing is bundled, vendored, or seeded with scholarly content.
 
+`data/seed/tafsir/` and `data/quran/*.json` hold the local ingestion cache and are
+gitignored. They are the corpus itself, drawn from editions whose
+`copyright_status` is `UNKNOWN`, so committing them would redistribute text whose
+licensing has not been established. `scripts/fetch_corpus.py` rebuilds the cache on
+demand, so excluding it costs nothing.
+
+> **History caveat.** Commits made before this exclusion was added do contain that
+> cached text. Before publishing this repository, either purge those paths from
+> history or publish privately. Adding a `.gitignore` entry stops future commits; it
+> does not remove what earlier ones already recorded.
+
 Test fixtures use synthetic Arabic strings that are **not** Tafsir and are marked
 `verification_status = 'FIXTURE'`. Fixture-state rows are excluded from every
 user-facing query path by a database-level predicate, not by application convention.

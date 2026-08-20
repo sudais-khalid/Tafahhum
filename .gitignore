@@ -23,7 +23,15 @@ build/
 .env.*.local
 *.pem
 
-# Data — corpus artefacts are large and licence-bound, never committed
+# Data — corpus artefacts are large and licence-bound, never committed.
+#
+# The cached Tafsir text is the corpus itself. Every edition it came from is
+# copyright_status = UNKNOWN, so committing it would redistribute text whose
+# licensing has not been established. It is re-fetchable at any time with
+# scripts/fetch_corpus.py, so nothing is lost by keeping it out.
+data/seed/tafsir/
+data/seed/*.json
+data/quran/*.json
 data/scans/
 data/ocr/
 data/editions/
