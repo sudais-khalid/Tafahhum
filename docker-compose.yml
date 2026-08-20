@@ -26,6 +26,17 @@ services:
       timeout: 5s
       retries: 20
       start_period: 10s
+    # A runaway query on a dev box should not take the whole machine with it.
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 2G
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     command:
       - postgres
       # Arabic text is token-dense; a larger work_mem keeps GIN scans in memory.

@@ -9,7 +9,9 @@ import { TracePanel } from "@/components/TracePanel";
 import { COPY, DIR, LANGUAGES } from "@/lib/i18n";
 import type { PassageTranslation, QueryResult, Reading, UiLanguage } from "@/lib/types";
 
-const API = process.env.TAFAHHUM_API ?? "http://127.0.0.1:8000";
+// Empty means same origin: in production the reverse proxy serves the
+// API under /api on the same host, so no cross-origin request is made.
+const API = process.env.NEXT_PUBLIC_TAFAHHUM_API ?? "";
 
 /** Concurrent translation requests. Kept low so a twelve-passage result does not
  *  open twelve simultaneous model calls against the server. */

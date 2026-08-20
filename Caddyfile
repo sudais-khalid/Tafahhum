@@ -1,0 +1,33 @@
+# Reverse proxy for Tafahhum.
+#
+# Serving the API and the web app from one origin removes cross-origin requests
+# from the picture entirely: the browser calls /api on the same host it loaded
+# the page from, so no CORS policy has to be relaxed for the app to work.
+#
+# Set TAFAHHUM_DOMAIN to a real hostname and Caddy obtains and renews a TLS
+# certificate automatically. Left at the default it serves plain HTTP on :80,
+# which is fine for a local run and not fine for anything public.
+
+{$TAFAHHUM_DOMAIN::80} {
+	encode zstd gzip
+
+	# Security headers. HSTS is only meaningful over TLS, so it is set by Caddy
+	# automatically when a real domain is configured.
+	header {
+		X-Content-Type-Options nosniff
+		X-Frame-Options DENY
+		Referrer-Policy strict-origin-when-cross-origin
+		# The app loads fonts from Google Fonts and makes no other external
+		# request; everything else is same-origin.
+		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+		-Server
+	}
+
+	handle /api/* {
+		reverse_proxy api:8000
+	}
+
+	handle {
+		reverse_proxy web:3000
+	}
+}

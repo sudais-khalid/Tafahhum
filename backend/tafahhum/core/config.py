@@ -53,7 +53,20 @@ class Settings(BaseSettings):
     #: corpus-maintenance affordance and must never be done on a user-facing path.
     published_only: bool = True
 
+    #: Origins allowed to call the API from a browser. In production the
+    #: frontend is served from the same origin through the reverse proxy, so
+    #: this is normally empty and no cross-origin request happens at all.
+    cors_origins: str = "http://localhost:3000,http://127.0.0.1:3000"
+
     environment: str = Field(default="development")
+
+    @property
+    def cors_origin_list(self) -> list[str]:
+        origins = [o.strip() for o in self.cors_origins.split(",") if o.strip()]
+        # A wildcard would let any site drive a browser session against this
+        # API. It is never what this deployment wants, so it is dropped rather
+        # than honoured, and the same-origin default applies instead.
+        return [o for o in origins if o != "*"]
 
     @property
     def dsn(self) -> str:
