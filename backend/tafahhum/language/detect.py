@@ -17,8 +17,8 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
-from tafahhum.core.enums import Language
 from tafahhum.arabic.normalize import arabic_ratio, is_arabic_script
+from tafahhum.core.enums import Language
 
 # Letters used in Urdu (and Persian) that standard Arabic orthography does not use.
 _URDU_MARKERS = set("ٹڈڑںےہھگچپژۂۓٴ")

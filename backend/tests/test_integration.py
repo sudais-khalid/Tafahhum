@@ -65,38 +65,35 @@ class TestSchemaIntegrity:
         conn.rollback()
 
     def test_scholarly_rule_requires_a_reference(self, conn):
-        with conn.cursor() as cur:
-            with pytest.raises(psycopg.errors.CheckViolation):
-                cur.execute(
-                    """
+        with conn.cursor() as cur, pytest.raises(psycopg.errors.CheckViolation):
+            cur.execute(
+                """
                     INSERT INTO scholarly_rule
                         (rule_key, name, description, tier, source_book)
                     VALUES ('t_bad', 'x', 'y', 'SCHOLARLY_METHOD', 'Some Book')
                     """
-                )
+            )
         conn.rollback()
 
     def test_structural_rule_may_not_claim_a_book(self, conn):
-        with conn.cursor() as cur:
-            with pytest.raises(psycopg.errors.CheckViolation):
-                cur.execute(
-                    """
+        with conn.cursor() as cur, pytest.raises(psycopg.errors.CheckViolation):
+            cur.execute(
+                """
                     INSERT INTO scholarly_rule
                         (rule_key, name, description, tier, source_book, source_reference)
                     VALUES ('t_bad2', 'x', 'y', 'QUERY_STRATEGY', 'Some Book', '1/1')
                     """
-                )
+            )
         conn.rollback()
 
     def test_verified_requires_a_reviewer(self, conn):
-        with conn.cursor() as cur:
-            with pytest.raises(psycopg.errors.CheckViolation):
-                cur.execute(
-                    """
+        with conn.cursor() as cur, pytest.raises(psycopg.errors.CheckViolation):
+            cur.execute(
+                """
                     UPDATE scholarly_rule SET verification_status = 'VERIFIED'
                     WHERE rule_key = 'strategy.hybrid_retrieval'
                     """
-                )
+            )
         conn.rollback()
 
     def test_no_rule_claims_a_scholarly_source_yet(self, conn):

@@ -12,9 +12,8 @@ import pytest
 
 from tafahhum.api.schemas import serialise
 from tafahhum.core.config import get_settings
-from tafahhum.core.enums import Language
+from tafahhum.core.enums import Language, VerificationStatus
 from tafahhum.language.translate import Translation, fetch_many
-from tafahhum.core.enums import VerificationStatus
 from tafahhum.pipeline import QueryRequest, run_query
 
 pytestmark = pytest.mark.db

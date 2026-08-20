@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 
 from tafahhum.quran.reference import AyahRef, parse_ayah_references
-from tafahhum.quran.surah_data import SURAHS, SURAH_BY_NUMBER, TOTAL_AYAHS
+from tafahhum.quran.surah_data import SURAH_BY_NUMBER, SURAHS, TOTAL_AYAHS
 
 
 def refs(text: str) -> list[str]:

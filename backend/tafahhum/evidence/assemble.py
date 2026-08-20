@@ -16,10 +16,10 @@ from dataclasses import dataclass, field
 import psycopg
 
 from tafahhum.core.enums import EvidenceType, Language, QueryType, VerificationStatus
+from tafahhum.language.translate import Translation, fetch_many
 from tafahhum.quran.reference import AyahRef
 from tafahhum.retrieval.models import RetrievalTrace, RetrievedPassage
 from tafahhum.rules.classify import Classification
-from tafahhum.language.translate import Translation, fetch_many
 from tafahhum.rules.engine import RetrievalPlan
 
 

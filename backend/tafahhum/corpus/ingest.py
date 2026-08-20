@@ -21,9 +21,9 @@ edition with scans — the pipeline in CORPUS_PIPELINE.md — not a better guess
 from __future__ import annotations
 
 import json
+from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable, Iterator
 
 import psycopg
 

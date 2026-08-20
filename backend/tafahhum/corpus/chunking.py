@@ -54,7 +54,7 @@ class Chunk:
     char_count: int
 
     @classmethod
-    def of(cls, index: int, text: str) -> "Chunk":
+    def of(cls, index: int, text: str) -> Chunk:
         return cls(
             index=index,
             raw_text=text,

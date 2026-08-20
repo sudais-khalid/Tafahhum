@@ -16,7 +16,7 @@ from dataclasses import dataclass
 import psycopg
 
 from tafahhum.core.config import get_settings
-from tafahhum.core.enums import Language, QueryType
+from tafahhum.core.enums import Language
 from tafahhum.evidence.assemble import EvidencePackage, assemble
 from tafahhum.language.detect import detect_language
 from tafahhum.language.pivot import to_pivot

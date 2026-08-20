@@ -33,7 +33,7 @@ from one whose subject was inferred.
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from tafahhum.arabic.normalize import normalize_for_matching
 
@@ -147,10 +147,12 @@ def _find_span(needle: list[str], haystack: list[str]) -> tuple[int, int] | None
 #: Function words occurring in almost any Arabic sentence. A run made only of
 #: these is not evidence that a passage is treating the clause containing them.
 _FUNCTION_WORDS = frozenset(
-    """
-    ما في من علي الي عن هو هي هم لا الا ان انه اني الذي التي
-    له لها لهم به بها عليه عليها ذلك هذا هذه ثم قد كان كانت يكون
-    """.split()
+    [
+        "ما", "في", "من", "علي", "الي", "عن", "هو", "هي",
+        "هم", "لا", "الا", "ان", "انه", "اني", "الذي", "التي",
+        "له", "لها", "لهم", "به", "بها", "عليه", "عليها", "ذلك",
+        "هذا", "هذه", "ثم", "قد", "كان", "كانت", "يكون",
+    ]
 )
 
 

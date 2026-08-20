@@ -23,6 +23,7 @@ from tafahhum.corpus.catalogue import (
     unclassified_works,
 )
 
+
 @pytest.fixture(scope="module")
 def conn():
     """One connection shared by every database test in this module."""
@@ -153,14 +154,13 @@ class TestCatalogueInDatabase:
             assert cur.fetchone()["n"] == 0
 
     def test_unsourced_classification_is_rejected(self, conn):
-        with conn.cursor() as cur:
-            with pytest.raises(psycopg.errors.CheckViolation):
-                cur.execute(
-                    """
+        with conn.cursor() as cur, pytest.raises(psycopg.errors.CheckViolation):
+            cur.execute(
+                """
                     INSERT INTO tafsir_work (slug, title_ar, tradition)
                     VALUES ('t-bad-class', 'x', 'SUNNI')
                     """
-                )
+            )
         conn.rollback()
 
     def test_kashshaf_stored_as_mutazila(self, conn):

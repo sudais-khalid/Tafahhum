@@ -27,7 +27,7 @@ from tafahhum.arabic.normalize import normalize_for_matching
 from tafahhum.core.config import get_settings
 from tafahhum.core.enums import EvidenceType, Language, VerificationStatus
 from tafahhum.quran.reference import AyahRef
-from tafahhum.retrieval.models import Citation, RetrievedPassage, RetrievalTrace
+from tafahhum.retrieval.models import Citation, RetrievalTrace, RetrievedPassage
 
 # Every retrieval query selects this projection, so a citation is always complete.
 _PROJECTION = """

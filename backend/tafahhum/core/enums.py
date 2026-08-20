@@ -8,10 +8,10 @@ deep inside a query rather than at import time.
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 
 
-class Language(str, Enum):
+class Language(StrEnum):
     """Languages the user interface supports, plus corpus languages."""
 
     AR = "ar"
@@ -46,7 +46,7 @@ PIVOT_LANGUAGE = Language.AR
 USER_LANGUAGES = (Language.AR, Language.EN, Language.UR)
 
 
-class CorpusStatus(str, Enum):
+class CorpusStatus(StrEnum):
     DISCOVERED = "DISCOVERED"
     ACQUIRED = "ACQUIRED"
     SCANNED = "SCANNED"
@@ -60,7 +60,7 @@ class CorpusStatus(str, Enum):
     PUBLISHED = "PUBLISHED"
 
 
-class VerificationStatus(str, Enum):
+class VerificationStatus(StrEnum):
     FIXTURE = "FIXTURE"
     UNVERIFIED = "UNVERIFIED"
     MACHINE_PROPOSED = "MACHINE_PROPOSED"
@@ -69,7 +69,7 @@ class VerificationStatus(str, Enum):
     VERIFIED = "VERIFIED"
 
 
-class EvidenceType(str, Enum):
+class EvidenceType(StrEnum):
     """The eight kinds of evidence that must never be silently merged."""
 
     QURANIC_TEXT = "QURANIC_TEXT"
@@ -87,7 +87,7 @@ class EvidenceType(str, Enum):
         return self is not EvidenceType.TAFAHHUM_SYNTHESIS
 
 
-class HistoricalPeriod(str, Enum):
+class HistoricalPeriod(StrEnum):
     FORMATIVE = "FORMATIVE"
     EARLY = "EARLY"
     CLASSICAL = "CLASSICAL"
@@ -97,7 +97,7 @@ class HistoricalPeriod(str, Enum):
     UNKNOWN = "UNKNOWN"
 
     @classmethod
-    def from_death_year_hijri(cls, year: int | None) -> "HistoricalPeriod":
+    def from_death_year_hijri(cls, year: int | None) -> HistoricalPeriod:
         """Assign a period from a Hijri death year.
 
         The boundaries are conventional and contested; this is a retrieval
@@ -120,7 +120,7 @@ class HistoricalPeriod(str, Enum):
         return cls.MODERN
 
 
-class CoverageKind(str, Enum):
+class CoverageKind(StrEnum):
     COMPLETE = "COMPLETE"
     PARTIAL = "PARTIAL"
     FRAGMENTARY = "FRAGMENTARY"
@@ -128,7 +128,7 @@ class CoverageKind(str, Enum):
     UNKNOWN = "UNKNOWN"
 
 
-class CopyrightStatus(str, Enum):
+class CopyrightStatus(StrEnum):
     PUBLIC_DOMAIN = "PUBLIC_DOMAIN"
     PUBLIC_DOMAIN_TEXT_EDITION_RESTRICTED = "PUBLIC_DOMAIN_TEXT_EDITION_RESTRICTED"
     LICENSED = "LICENSED"
@@ -136,14 +136,14 @@ class CopyrightStatus(str, Enum):
     UNKNOWN = "UNKNOWN"
 
 
-class AlignmentKind(str, Enum):
+class AlignmentKind(StrEnum):
     PRIMARY = "PRIMARY"
     DISCUSSED = "DISCUSSED"
     CITED = "CITED"
     CROSS_REFERENCE = "CROSS_REFERENCE"
 
 
-class QueryType(str, Enum):
+class QueryType(StrEnum):
     AYAH_TAFSIR = "AYAH_TAFSIR"
     WORD_MEANING = "WORD_MEANING"
     LINGUISTIC = "LINGUISTIC"
@@ -163,7 +163,7 @@ class QueryType(str, Enum):
     UNKNOWN = "UNKNOWN"
 
 
-class RuleTier(str, Enum):
+class RuleTier(StrEnum):
     """Evaluation tiers. A lower tier never overrides a higher one."""
 
     SYSTEM_INTEGRITY = "SYSTEM_INTEGRITY"
@@ -179,7 +179,7 @@ class RuleTier(str, Enum):
         return list(RuleTier).index(self)
 
 
-class AnswerMode(str, Enum):
+class AnswerMode(StrEnum):
     SIMPLE = "SIMPLE"
     DETAILED = "DETAILED"
     COMPARATIVE = "COMPARATIVE"

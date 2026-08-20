@@ -90,7 +90,10 @@ def apply_all(dsn: str, *, verbose: bool = True) -> int:
 
 def main() -> int:
     settings = get_settings()
-    print(f"applying migrations to {settings.postgres_db}@{settings.postgres_host}:{settings.postgres_port}")
+    print(
+        f"applying migrations to {settings.postgres_db}"
+        f"@{settings.postgres_host}:{settings.postgres_port}"
+    )
     count = apply_all(settings.dsn)
     print(f"done: {count} migration(s) applied")
     return 0

@@ -356,56 +356,80 @@ CATALOGUE: tuple[CatalogueEntry, ...] = (
         "الدر المصون", "Al-Durr al-Masun",
         "السمين الحلبي", "al-Samin al-Halabi",
         None, "UNCLASSIFIED", "LUGHAWI", rank=200,
-        note="Linguistic and recitation apparatus; the classification reference lists works of tafsir, not works of this kind."
+        note=(
+            "Linguistic and recitation apparatus; the classification "
+            "reference lists works of tafsir, not works of this kind."
+        ),
     ),
     CatalogueEntry(
         "irab-al-quran-al-darwish", "i-rab-al-quran-li-al-darwish",
         "إعراب القرآن وبيانه", "Irab al-Quran wa Bayanuh",
         "محيي الدين الدرويش", "Muhyi al-Din al-Darwish",
         None, "UNCLASSIFIED", "LUGHAWI", rank=202,
-        note="Linguistic and recitation apparatus; the classification reference lists works of tafsir, not works of this kind."
+        note=(
+            "Linguistic and recitation apparatus; the classification "
+            "reference lists works of tafsir, not works of this kind."
+        ),
     ),
     CatalogueEntry(
         "al-jadwal-fi-irab-al-quran", "al-jadwal-fi-i-rab-al-quran",
         "الجدول في إعراب القرآن", "Al-Jadwal fi Irab al-Quran",
         "محمود صافي", "Mahmud Safi",
         None, "UNCLASSIFIED", "LUGHAWI", rank=204,
-        note="Linguistic and recitation apparatus; the classification reference lists works of tafsir, not works of this kind."
+        note=(
+            "Linguistic and recitation apparatus; the classification "
+            "reference lists works of tafsir, not works of this kind."
+        ),
     ),
     CatalogueEntry(
         "al-irab-al-muyassar", "al-i-rab-al-muyassar",
         "الإعراب الميسر", "Al-Irab al-Muyassar",
         "نخبة من العلماء", "A committee of scholars",
         None, "UNCLASSIFIED", "LUGHAWI", rank=206,
-        note="Linguistic and recitation apparatus; the classification reference lists works of tafsir, not works of this kind."
+        note=(
+            "Linguistic and recitation apparatus; the classification "
+            "reference lists works of tafsir, not works of this kind."
+        ),
     ),
     CatalogueEntry(
         "al-muyassar-fi-gharib-al-quran", "al-muyassar-fi-al-gharib",
         "الميسر في غريب القرآن", "Al-Muyassar fi Gharib al-Quran",
         "نخبة من العلماء", "A committee of scholars",
         None, "UNCLASSIFIED", "GHARIB", rank=210,
-        note="Linguistic and recitation apparatus; the classification reference lists works of tafsir, not works of this kind."
+        note=(
+            "Linguistic and recitation apparatus; the classification "
+            "reference lists works of tafsir, not works of this kind."
+        ),
     ),
     CatalogueEntry(
         "al-siraj-fi-gharib-al-quran", "asseraj-fi-bayan-gharib-alquran",
         "السراج في بيان غريب القرآن", "Al-Siraj fi Bayan Gharib al-Quran",
         "محمد الخضيري", "Muhammad al-Khudayri",
         None, "UNCLASSIFIED", "GHARIB", rank=212,
-        note="Linguistic and recitation apparatus; the classification reference lists works of tafsir, not works of this kind."
+        note=(
+            "Linguistic and recitation apparatus; the classification "
+            "reference lists works of tafsir, not works of this kind."
+        ),
     ),
     CatalogueEntry(
         "al-nashr-ibn-al-jazari", "al-nashr-li-ibn-al-jazari",
         "النشر في القراءات العشر", "Al-Nashr fi al-Qiraat al-Ashr",
         "ابن الجزري", "Ibn al-Jazari",
         None, "UNCLASSIFIED", "QIRAAT", rank=220,
-        note="Linguistic and recitation apparatus; the classification reference lists works of tafsir, not works of this kind."
+        note=(
+            "Linguistic and recitation apparatus; the classification "
+            "reference lists works of tafsir, not works of this kind."
+        ),
     ),
     CatalogueEntry(
         "al-mawsuah-al-quraniyyah-lil-qiraat", "al-qira-at-al-mawsoo-ah-al-qur-aniyyah",
         "الموسوعة القرآنية في القراءات", "Al-Mawsuah al-Quraniyyah fi al-Qiraat",
         "مجموعة من الباحثين", "Compiled by a research team",
         None, "UNCLASSIFIED", "QIRAAT", rank=222,
-        note="Linguistic and recitation apparatus; the classification reference lists works of tafsir, not works of this kind."
+        note=(
+            "Linguistic and recitation apparatus; the classification "
+            "reference lists works of tafsir, not works of this kind."
+        ),
     ),
 )
 

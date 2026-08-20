@@ -64,7 +64,11 @@ class PhraseGroup:
 
 def _citation(row: dict, language: str) -> str:
     author = row["author_en"] if language != "ar" and row["author_en"] else row["author_ar"]
-    title = row["work_title_en"] if language != "ar" and row["work_title_en"] else row["work_title_ar"]
+    title = (
+        row["work_title_en"]
+        if language != "ar" and row["work_title_en"]
+        else row["work_title_ar"]
+    )
     parts = [f"{author}, {title}"]
     if row["volume"] is not None:
         parts.append(f"vol. {row['volume']}")

@@ -232,14 +232,13 @@ class TestScanPages:
         assert row["genre"] == "tabaqat_al_mufassirin"
 
     def test_scan_page_requires_exactly_one_parent(self, conn):
-        with conn.cursor() as cur:
-            with pytest.raises(psycopg.errors.CheckViolation):
-                cur.execute(
-                    """
+        with conn.cursor() as cur, pytest.raises(psycopg.errors.CheckViolation):
+            cur.execute(
+                """
                     INSERT INTO scan_page (volume, page_label, image_index, image_uri)
                     VALUES (1, '1', 9999, 'x.png')
                     """
-                )
+            )
         conn.rollback()
 
     def test_ocr_raw_text_is_immutable_once_written(self, conn):

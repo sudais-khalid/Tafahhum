@@ -18,8 +18,8 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 
-from tafahhum.arabic.normalize import normalize_key, normalize_digits
-from tafahhum.quran.surah_data import SURAHS, SURAH_BY_NUMBER, Surah
+from tafahhum.arabic.normalize import normalize_digits, normalize_key
+from tafahhum.quran.surah_data import SURAH_BY_NUMBER, SURAHS, Surah
 
 
 @dataclass(frozen=True, order=True)

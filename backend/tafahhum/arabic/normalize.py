@@ -228,7 +228,7 @@ class NormalizedText:
     matching: str
 
     @classmethod
-    def of(cls, text: str) -> "NormalizedText":
+    def of(cls, text: str) -> NormalizedText:
         return cls(
             original=text,
             display=normalize_for_display(text),
