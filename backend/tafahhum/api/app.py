@@ -9,6 +9,7 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 
+from tafahhum.api.reading import build_reading
 from tafahhum.api.schemas import QueryIn, QueryOut, serialise
 from tafahhum.core.config import get_settings
 from tafahhum.core.enums import USER_LANGUAGES, Language
@@ -406,6 +407,41 @@ def _resolve_preset(cur, preset: dict) -> list[str]:
         params,
     )
     return [r["slug"] for r in cur.fetchall()]
+
+
+@app.get(f"{API}/read/{{surah}}/{{ayah}}")
+def read(
+    surah: int,
+    ayah: int,
+    language: Language = Query(default=Language.EN),
+    works: str | None = Query(default=None, description="Comma-separated work slugs"),
+    preset: str | None = Query(default=None),
+) -> dict:
+    """One ayah, organised clause by clause for reading.
+
+    The counterpart to /query: same corpus, same provenance, arranged for
+    someone learning the ayah rather than auditing the evidence.
+    """
+    slugs = [s.strip() for s in works.split(",") if s.strip()] if works else None
+
+    with connection() as conn:
+        if not slugs and preset:
+            chosen = next((p for p in PRESETS if p["key"] == preset), None)
+            if chosen is None:
+                raise HTTPException(status_code=400, detail=f"unknown preset {preset!r}")
+            with conn.cursor() as cur:
+                slugs = _resolve_preset(cur, chosen)
+
+        result = build_reading(
+            conn, surah=surah, ayah=ayah, language=language, work_slugs=slugs
+        )
+
+    if not result:
+        raise HTTPException(
+            status_code=404,
+            detail=f"{surah}:{ayah} is not in the corpus yet",
+        )
+    return result
 
 
 @app.get(f"{API}/catalogue")

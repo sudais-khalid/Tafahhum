@@ -2,11 +2,12 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AyahBlock, WorkGroup } from "@/components/Evidence";
+import { ReadingView } from "@/components/ReadingView";
 import { References } from "@/components/References";
 import { SourceSelector } from "@/components/SourceSelector";
 import { TracePanel } from "@/components/TracePanel";
 import { COPY, DIR, LANGUAGES } from "@/lib/i18n";
-import type { PassageTranslation, QueryResult, UiLanguage } from "@/lib/types";
+import type { PassageTranslation, QueryResult, Reading, UiLanguage } from "@/lib/types";
 
 const API = process.env.TAFAHHUM_API ?? "http://127.0.0.1:8000";
 
@@ -28,6 +29,11 @@ export default function Home() {
   // Which works retrieval is restricted to. `null` means "not yet loaded"; the
   // selector fills it from the default preset on mount.
   const [sources, setSources] = useState<string[] | null>(null);
+  // When a question resolves to exactly one ayah, the reading view is the
+  // better answer: someone asking about an ayah wants to understand it, not to
+  // audit twelve passages. The evidence view stays one click away.
+  const [reading, setReading] = useState<Reading | null>(null);
+  const [view, setView] = useState<"read" | "evidence">("read");
   const runId = useRef(0);
 
   const t = COPY[language];
@@ -65,6 +71,21 @@ export default function Home() {
         const data = (await res.json()) as QueryResult;
         if (thisRun !== runId.current) return;
         setResult(data);
+        setReading(null);
+        setView("read");
+
+        if (data.ayah_references.length === 1) {
+          const [surah, ayah] = data.ayah_references[0].split(":");
+          const params = new URLSearchParams({ language });
+          if (sources && sources.length > 0) params.set("works", sources.join(","));
+          const r = await fetch(`${API}/api/v1/read/${surah}/${ayah}?${params}`);
+          if (r.ok && thisRun === runId.current) {
+            setReading((await r.json()) as Reading);
+          }
+        } else {
+          setView("evidence");
+        }
+
         void fillTranslations(data, thisRun);
       } catch {
         if (thisRun === runId.current) {
@@ -232,7 +253,30 @@ export default function Home() {
 
         {error && <div className="notice">{error}</div>}
 
-        {result && (
+        {reading && (
+          <div className="view-switch" role="group" aria-label="view">
+            <button
+              type="button"
+              aria-pressed={view === "read"}
+              onClick={() => setView("read")}
+            >
+              {t.readingTab}
+            </button>
+            <button
+              type="button"
+              aria-pressed={view === "evidence"}
+              onClick={() => setView("evidence")}
+            >
+              {t.evidenceTab}
+            </button>
+          </div>
+        )}
+
+        {reading && view === "read" && (
+          <ReadingView reading={reading} language={language} />
+        )}
+
+        {result && (view === "evidence" || !reading) && (
           <>
             {result.ayahs.map((a) => (
               <AyahBlock key={a.reference} ayah={a} language={language} />

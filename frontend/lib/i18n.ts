@@ -55,6 +55,15 @@ type Copy = {
   sourcesSelected: (n: number, total: number, passages: number) => string;
   classificationNote: string;
   passagesWord: string;
+  readingCounts: (clauses: number, works: number) => string;
+  scholarsOnThisClause: (n: number) => string;
+  noSeparateTreatment: string;
+  furtherDiscussion: string;
+  showArabic: string;
+  hideArabic: string;
+  matchedByOverlap: string;
+  readingTab: string;
+  evidenceTab: string;
   tradition: (key: string) => string;
   method: (key: string) => string;
   referencesHeading: string;
@@ -129,6 +138,16 @@ const en: Copy = {
   classificationNote:
     "School and method come from a tertiary reference and are unverified. Works that reference does not list are shown as unclassified rather than assigned a school by inference.",
   passagesWord: "passages",
+  readingCounts: (c, w) => `${c} clauses · ${w} commentaries`,
+  scholarsOnThisClause: (n) => `${n} ${n === 1 ? "commentary" : "commentaries"} on this clause`,
+  noSeparateTreatment:
+    "No commentary in your selection treats this clause on its own; it is discussed together with the clause beside it.",
+  furtherDiscussion: "Further discussion of this ayah",
+  showArabic: "Show the Arabic",
+  hideArabic: "Hide the Arabic",
+  matchedByOverlap: "matched by wording, not quoted",
+  readingTab: "Read",
+  evidenceTab: "Evidence",
   tradition: (k) =>
     ({
       EARLY: "Early",
@@ -226,6 +245,15 @@ const ar: Copy = {
   classificationNote:
     "المذهب والمنهج مأخوذان من مرجع ثانوي وهما غير موثقين. والكتب التي لا يذكرها ذلك المرجع تُعرض بلا تصنيف بدل نسبتها إلى مذهب بالاستنتاج.",
   passagesWord: "نصًا",
+  readingCounts: (c, w) => `${c} مقاطع · ${w} من التفاسير`,
+  scholarsOnThisClause: (n) => `${n} من التفاسير في هذا المقطع`,
+  noSeparateTreatment: "لم يفرد أحد من التفاسير المختارة هذا المقطع بالكلام، بل تُكلم عليه مع ما بجانبه.",
+  furtherDiscussion: "مباحث أخرى في هذه الآية",
+  showArabic: "إظهار النص العربي",
+  hideArabic: "إخفاء النص العربي",
+  matchedByOverlap: "مطابقة بالألفاظ لا بالنص",
+  readingTab: "قراءة",
+  evidenceTab: "الشواهد",
   tradition: (k) =>
     ({
       EARLY: "المتقدمون",
@@ -324,6 +352,16 @@ const ur: Copy = {
   classificationNote:
     "مسلک اور منہج ایک ثانوی مرجع سے لیے گئے ہیں اور غیر مصدقہ ہیں۔ جن کتابوں کا ذکر اس مرجع میں نہیں، انہیں قیاس سے کسی مسلک میں شامل کرنے کے بجائے غیر مصنف دکھایا گیا ہے۔",
   passagesWord: "عبارات",
+  readingCounts: (c, w) => `${c} اجزا · ${w} تفاسیر`,
+  scholarsOnThisClause: (n) => `اس جزو پر ${n} تفاسیر`,
+  noSeparateTreatment:
+    "منتخب تفاسیر میں سے کسی نے اس جزو پر الگ کلام نہیں کیا؛ اسے ساتھ والے جزو کے ساتھ بیان کیا گیا ہے۔",
+  furtherDiscussion: "اس آیت پر مزید مباحث",
+  showArabic: "عربی متن دکھائیے",
+  hideArabic: "عربی متن چھپائیے",
+  matchedByOverlap: "الفاظ سے مطابقت، اقتباس سے نہیں",
+  readingTab: "مطالعہ",
+  evidenceTab: "شواہد",
   tradition: (k) =>
     ({
       EARLY: "متقدمین",

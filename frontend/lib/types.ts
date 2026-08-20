@@ -178,3 +178,60 @@ export interface CatalogueResponse {
   };
   classification_note: string;
 }
+
+export interface ReadingNote {
+  passage_id: string;
+  reference_number: number;
+  work_slug: string;
+  author: string;
+  author_ar: string;
+  death_year_hijri: number | null;
+  tradition: string;
+  gist: string | null;
+  text: string;
+  translation: string | null;
+  translator_name: string | null;
+  is_machine_translation: boolean;
+  alignment_basis: string;
+  alignment_confidence: number;
+  citation: string;
+}
+
+export interface ReadingPhrase {
+  index: number;
+  text_ar: string;
+  support: number;
+  scholar_count: number;
+  notes: ReadingNote[];
+}
+
+export interface Reading {
+  surah_number: number;
+  ayah_number: number;
+  reference: string;
+  surah_name_ar: string;
+  surah_name_en: string;
+  surah_ayah_count: number;
+  text_uthmani: string;
+  translations: AyahTranslation[];
+  phrases: ReadingPhrase[];
+  further_discussion: {
+    count: number;
+    notes: ReadingNote[];
+    explanation: string;
+  };
+  references: {
+    number: number;
+    work_slug: string;
+    work_title_ar: string;
+    work_title_en: string | null;
+    author_ar: string;
+    author_en: string | null;
+    death_year_hijri: number | null;
+    tradition: string;
+    citation: string;
+    resolves_to_page: boolean;
+  }[];
+  counts: { clauses: number; notes_shown: number; works: number };
+  method_note: string;
+}
