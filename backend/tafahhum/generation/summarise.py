@@ -45,9 +45,18 @@ GENERATOR_VERSION = "tafahhum-summary-v1"
 MIN_PASSAGES = 3
 
 #: Fraction of a sentence's content words that must appear in the passage it
-#: cites. A summary paraphrases, so this is deliberately not near 1.0 — it is
-#: set to catch sentences with no real relationship to their citation.
-MIN_SUPPORT = 0.28
+#: cites, after clitics are stripped.
+#:
+#: A summary paraphrases, so this is deliberately far from 1.0. The separation it
+#: relies on is wide: a sentence with no relationship to its citation shares no
+#: substantive vocabulary at all and scores 0, while a faithful paraphrase reuses
+#: some of the passage's key terms. Anything in between those is arbitrary, and
+#: one in five is the point chosen.
+#:
+#: Tuned against a handful of hand-built cases, not an evaluation set. It should
+#: be revisited once there are labelled summaries to measure against — see
+#: docs/EVALUATION.md.
+MIN_SUPPORT = 0.20
 
 #: Above this, a sentence is not a summary of the passage but a copy of it.
 #: Reproducing the source and labelling it a synthesis is its own failure mode.
@@ -164,9 +173,31 @@ _CITATION = re.compile(r"\[(\d{1,2})\]")
 _SENTENCE_SPLIT = re.compile(r"\n+|(?<=[.؟!۔])\s+")
 
 
+#: Clitics Arabic attaches to the front of a word: conjunctions, prepositions,
+#: and the definite article. They are orthographic, not lexical.
+_PREFIXES = ("وال", "فال", "بال", "كال", "لل", "ال", "و", "ف", "ب", "ك", "ل")
+
+
+def _strip_clitics(word: str) -> str:
+    """Reduce a word to its stem for overlap purposes.
+
+    Arabic writes conjunctions, prepositions, and the article joined to the
+    following word, so والقيوم and القيوم are the same lexical item spelled
+    differently. Comparing surface forms made a faithful summary sentence score
+    12% against a passage it genuinely drew on — the threshold was measuring
+    morphology rather than fidelity. Stripping the clitic makes the score mean
+    what it is supposed to mean.
+    """
+    for prefix in _PREFIXES:
+        if word.startswith(prefix) and len(word) - len(prefix) >= 3:
+            return word[len(prefix):]
+    return word
+
+
 def content_words(text: str) -> set[str]:
     words = normalize_for_matching(text).split()
-    return {w for w in words if len(w) >= 4 and w not in _FUNCTION_WORDS}
+    stems = {_strip_clitics(w) for w in words if len(w) >= 4 and w not in _FUNCTION_WORDS}
+    return {w for w in stems if len(w) >= 3}
 
 
 def support_score(sentence: str, passage_text: str) -> float:
@@ -183,7 +214,33 @@ def support_score(sentence: str, passage_text: str) -> float:
     return len(sentence_words & passage_words) / len(sentence_words)
 
 
-def verify(raw_output: str, passages: list[dict]) -> list[SummarySentence]:
+#: Latin letters inside Arabic output. Small models occasionally emit a stray
+#: token from another script mid-sentence; the text is corrupt, not merely
+#: awkward, and must not be shown as though a commentator's view were rendered.
+_LATIN_IN_ARABIC = re.compile(r"[A-Za-z]{2,}")
+
+
+def echoes_the_verse(sentence: str, ayah_text: str) -> float:
+    """How much of a sentence is simply the verse restated.
+
+    Observed failure: asked to summarise commentary, a small model recites the
+    ayah instead. It scores well against the passages, because the passages
+    quote the ayah too — so overlap alone cannot catch it. A summary of what
+    commentators said should add something the verse does not already say.
+    """
+    words = content_words(sentence)
+    if not words:
+        return 0.0
+    return len(words & content_words(ayah_text)) / len(words)
+
+
+#: Above this share of verse words, a sentence is a recitation, not a summary.
+MAX_VERSE_ECHO = 0.6
+
+
+def verify(
+    raw_output: str, passages: list[dict], ayah_text: str = ""
+) -> list[SummarySentence]:
     """Check every sentence against the passage it cites."""
     # Collapse spaces and tabs but keep line breaks: the output contract is one
     # sentence per line, so newlines are the primary boundary and flattening
@@ -199,6 +256,24 @@ def verify(raw_output: str, passages: list[dict]) -> list[SummarySentence]:
         cited = [int(n) for n in _CITATION.findall(sentence)]
         valid = [n for n in cited if 1 <= n <= len(passages)]
         bare = _CITATION.sub("", sentence).strip()
+
+        if _LATIN_IN_ARABIC.search(bare):
+            out.append(
+                SummarySentence(
+                    bare, [], 0.0, False,
+                    "output corrupted: Latin characters inside Arabic text",
+                )
+            )
+            continue
+
+        if ayah_text and echoes_the_verse(bare, ayah_text) > MAX_VERSE_ECHO:
+            out.append(
+                SummarySentence(
+                    bare, [], 0.0, False,
+                    "restates the verse rather than summarising commentary on it",
+                )
+            )
+            continue
 
         if not cited:
             out.append(SummarySentence(bare, [], 0.0, False, "no citation"))
@@ -290,7 +365,7 @@ def summarise(
             note="The model returned nothing for this verse.",
         )
 
-    sentences = verify(raw, passages)
+    sentences = verify(raw, passages, ayah_text)
     summary = assemble(sentences)
 
     used = sorted({n for s in sentences if s.kept for n in s.citations})

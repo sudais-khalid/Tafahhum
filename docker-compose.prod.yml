@@ -105,6 +105,11 @@ services:
         --locale-provider=icu
         --icu-locale=und
         --encoding=UTF8
+    # Docker defaults /dev/shm to 64MB. PostgreSQL allocates shared memory there
+    # for parallel query workers, and against a multi-gigabyte corpus that ceiling
+    # is reached as soon as a scan goes parallel — surfacing as DiskFull on an
+    # ordinary SELECT, which reads like a full disk and is not one.
+    shm_size: 1gb
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
