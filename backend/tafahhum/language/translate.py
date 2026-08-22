@@ -323,12 +323,22 @@ class OllamaTranslator:
 
 
 def select_translator() -> PassageTranslator:
-    """Prefer a hosted model, fall back to a local one, else nothing.
+    """Pick a backend for translating passages.
 
-    Ordering is by expected quality on classical Arabic, not by cost: a wrong
-    translation of exegesis is worse than an absent one, and an absent one is
-    reported honestly.
+    A dedicated translation model comes first, ahead of both chat models. That
+    is not a cost decision: a model trained for translation cannot ignore an
+    instruction, drift into commentary, or collapse into repetition, because it
+    is given no instructions to ignore. Those were the actual failures observed
+    from the chat backend, not hypothetical ones.
+
+    A hosted chat model is the next best, and a local one last, since a wrong
+    translation of exegesis is worse than a slow one.
     """
+    from tafahhum.language.nmt import NllbTranslator
+
+    nmt = NllbTranslator()
+    if nmt.available():
+        return nmt
     hosted = ClaudeTranslator()
     if hosted.available():
         return hosted
@@ -336,6 +346,33 @@ def select_translator() -> PassageTranslator:
     if local.available():
         return local
     return hosted  # unavailable; callers surface the 503
+
+
+def select_generator() -> PassageTranslator:
+    """Pick a backend for writing a summary.
+
+    Deliberately separate from translation. NLLB translates and cannot generate:
+    it has no notion of an instruction and would return the prompt rendered into
+    another language. Only a chat model can do this job, so the translation
+    backend is never considered here however good it is at its own task.
+    """
+    hosted = ClaudeTranslator()
+    if hosted.available():
+        return hosted
+    local = OllamaTranslator()
+    if local.available():
+        return local
+    return hosted
+
+
+_generator: PassageTranslator | None = None
+
+
+def get_generator() -> PassageTranslator:
+    global _generator
+    if _generator is None:
+        _generator = select_generator()
+    return _generator
 
 
 _translator: PassageTranslator = select_translator()

@@ -356,9 +356,11 @@ def summarise(
         )
 
     if translator is None:
-        from tafahhum.language.translate import get_translator
+        # A generator, not the translator: NLLB cannot follow an instruction and
+        # would hand back the prompt in another language.
+        from tafahhum.language.translate import get_generator
 
-        translator = get_translator()
+        translator = get_generator()
 
     if not translator.available():
         return None
