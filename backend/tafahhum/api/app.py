@@ -417,6 +417,7 @@ def read(
     language: Language = Query(default=Language.EN),
     works: str | None = Query(default=None, description="Comma-separated work slugs"),
     preset: str | None = Query(default=None),
+    per_work: int = Query(default=3, ge=1, le=25, description="Passages per work per clause"),
 ) -> dict:
     """One ayah, organised clause by clause for reading.
 
@@ -434,7 +435,8 @@ def read(
                 slugs = _resolve_preset(cur, chosen)
 
         result = build_reading(
-            conn, surah=surah, ayah=ayah, language=language, work_slugs=slugs
+            conn, surah=surah, ayah=ayah, language=language, work_slugs=slugs,
+            per_phrase_per_work=per_work,
         )
 
     if not result:

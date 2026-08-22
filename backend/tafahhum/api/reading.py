@@ -107,7 +107,7 @@ def build_reading(
     ayah: int,
     language: Language,
     work_slugs: list[str] | None = None,
-    per_phrase_per_work: int = 1,
+    per_phrase_per_work: int = 3,
 ) -> dict:
     """Assemble the clause-by-clause reading of one ayah."""
     with conn.cursor() as cur:
@@ -197,10 +197,14 @@ def build_reading(
             r["catalogue_rank"],
             r["work_slug"],
             0 if r["opens_discussion"] else 1,
-            0 if r["basis"] == "QUOTED" else 1,
             r["sequence_index"],
         )
     )
+
+    available: dict[tuple[int | None, str], int] = {}
+    for row in rows:
+        k = (row["phrase_index"], row["work_slug"])
+        available[k] = available.get(k, 0) + 1
 
     per_work_seen: dict[tuple[int | None, str], int] = {}
     for row in rows:
@@ -208,13 +212,23 @@ def build_reading(
         seen = per_work_seen.get(key, 0)
         if seen >= per_phrase_per_work:
             continue
-        per_work_seen[key] = seen + 1
 
-        # A continuation shown as a commentator's treatment of a clause reads
-        # as a fragment and misrepresents what they said. Continuations stay in
-        # the corpus and remain retrievable; they just do not lead a clause.
-        if row["phrase_index"] is not None and not row["opens_discussion"]:
+        # A continuation must not *lead* a clause: alone it reads as a fragment
+        # and misrepresents what the commentator said. But it is the body of the
+        # argument, and dropping it entirely hid most of the commentary. So it
+        # is admitted only behind an opening from the same work, where it reads
+        # as the continuous passage it actually is.
+        #
+        # This is checked before the counter moves. Incrementing first made the
+        # test unreachable, which silently admitted every continuation.
+        if (
+            row["phrase_index"] is not None
+            and not row["opens_discussion"]
+            and seen == 0
+        ):
             continue
+
+        per_work_seen[key] = seen + 1
 
         note = to_note(row)
         if row["phrase_index"] is None or row["phrase_index"] not in groups:
@@ -281,7 +295,7 @@ def build_reading(
             }
         )
 
-    def serialise_note(n: ScholarNote) -> dict:
+    def serialise_note(n: ScholarNote, phrase_index: int | None = None) -> dict:
         return {
             "passage_id": n.passage_id,
             "reference_number": seen_works.get(n.work_slug, 0),
@@ -295,12 +309,16 @@ def build_reading(
             "translation": n.translation,
             "translator_name": n.translator_name,
             "is_machine_translation": n.is_machine_translation,
+            "available_from_work": available.get(
+                (phrase_index, n.work_slug), 1
+            ),
             "alignment_basis": n.basis,
             "alignment_confidence": round(n.confidence, 3),
             "citation": n.citation,
         }
 
     total_notes = sum(len(g.notes) for g in ordered) + len(unaligned)
+    total_available = sum(available.values()) + len(unaligned)
 
     return {
         "surah_number": surah,
@@ -317,7 +335,7 @@ def build_reading(
                 "text_ar": g.text_ar,
                 "support": g.support,
                 "scholar_count": g.scholar_count,
-                "notes": [serialise_note(n) for n in g.notes],
+                "notes": [serialise_note(n, g.index) for n in g.notes],
             }
             for g in ordered
         ],
@@ -334,6 +352,10 @@ def build_reading(
         "counts": {
             "clauses": len(ordered),
             "notes_shown": total_notes,
+            # What exists behind the slice, so the interface can say how much
+            # more a commentator had to say rather than implying this is all.
+            "notes_available": total_available,
+            "per_work_limit": per_phrase_per_work,
             "works": len(references),
         },
         "method_note": (
