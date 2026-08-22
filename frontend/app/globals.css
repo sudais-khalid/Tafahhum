@@ -1280,3 +1280,164 @@ button {
     padding-inline-start: 0;
   }
 }
+
+
+/* ------------------------------------------------------------- synthesis */
+
+/* Deliberately unlike everything around it. Every other block on the page is
+   quoted from a source; this one is written, and it should not be possible to
+   mistake the two by glancing. */
+.synthesis {
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-lg);
+  background: var(--accent-wash);
+  padding: 1.35rem 1.5rem;
+  margin-block: 1.75rem;
+}
+
+.synthesis-head {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.synthesis-label {
+  font-family: var(--font-data);
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.synthesis-head button {
+  margin-inline-start: auto;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #fff;
+  border-radius: var(--radius);
+  padding: 0.34rem 0.9rem;
+  font-family: var(--font-ui);
+  font-size: 0.79rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.synthesis-head button:disabled {
+  opacity: 0.65;
+  cursor: default;
+}
+
+.spinner-dark {
+  width: 12px;
+  height: 12px;
+  border: 1.5px solid rgba(255, 255, 255, 0.45);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 700ms linear infinite;
+}
+
+.synthesis-caveat {
+  margin: 0.55rem 0 0;
+  font-family: var(--font-ui);
+  font-size: 0.79rem;
+  color: var(--accent-hover);
+}
+
+.synthesis-text {
+  margin: 1rem 0 0;
+  font-size: 1.02rem;
+  line-height: 1.8;
+  color: var(--ink);
+}
+
+.synthesis-text[lang="ar"],
+.synthesis-text[lang="ur"] {
+  font-size: 1.12rem;
+  line-height: 2.15;
+}
+
+/* The filter's record, shown rather than hidden: a summary that discarded
+   sentences is more trustworthy than one claiming it discarded none. */
+.synthesis-audit {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
+  gap: 0.7rem 1rem;
+  margin: 1.1rem 0 0;
+  padding-top: 0.9rem;
+  border-top: 1px solid rgba(47, 93, 98, 0.25);
+}
+
+.synthesis-audit dt {
+  font-family: var(--font-data);
+  font-size: 0.61rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.synthesis-audit dd {
+  margin: 0.15rem 0 0;
+  font-family: var(--font-data);
+  font-size: 0.95rem;
+  color: var(--ink);
+}
+
+.synthesis-removed {
+  margin-top: 0.9rem;
+}
+
+.synthesis-removed button {
+  border: 1px solid var(--rule-strong);
+  background: transparent;
+  border-radius: var(--radius);
+  padding: 0.22rem 0.65rem;
+  font-family: var(--font-ui);
+  font-size: 0.73rem;
+  color: var(--accent);
+}
+
+.synthesis-removed ul {
+  list-style: none;
+  margin: 0.7rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.synthesis-removed li {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.5rem 0.65rem;
+  background: var(--paper-raised);
+  border: 1px dashed var(--rule-strong);
+  border-radius: var(--radius);
+}
+
+.removed-reason {
+  font-family: var(--font-data);
+  font-size: 0.66rem;
+  color: var(--warn);
+}
+
+.removed-text {
+  font-family: var(--font-arabic);
+  font-size: 0.95rem;
+  color: var(--ink-muted);
+}
+
+.synthesis-problem {
+  margin: 0.8rem 0 0;
+  font-family: var(--font-ui);
+  font-size: 0.83rem;
+  color: var(--warn);
+}
+
+.synthesis-notice {
+  margin: 0.9rem 0 0;
+  font-family: var(--font-ui);
+  font-size: 0.73rem;
+  line-height: 1.6;
+  color: var(--ink-faint);
+}

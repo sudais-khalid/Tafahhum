@@ -275,7 +275,7 @@ export default function Home() {
         )}
 
         {reading && view === "read" && (
-          <ReadingView reading={reading} language={language} />
+          <ReadingView reading={reading} language={language} works={sources} />
         )}
 
         {result && (view === "evidence" || !reading) && (

@@ -235,3 +235,21 @@ export interface Reading {
   counts: { clauses: number; notes_shown: number; works: number };
   method_note: string;
 }
+
+export interface AyahSummary {
+  status: "generated" | "cached" | "unavailable" | "insufficient";
+  summary: string | null;
+  summary_ar?: string;
+  reason?: string;
+  model?: string;
+  generator?: string;
+  cited_passage_ids?: string[];
+  sentences_generated?: number;
+  sentences_kept?: number;
+  sentences_removed?: number;
+  mean_support?: number | null;
+  removed_detail?: { text: string; reason: string }[];
+  verification_status?: string;
+  evidence_type: string;
+  notice?: string;
+}

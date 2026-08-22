@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { COPY } from "@/lib/i18n";
+import { SummaryPanel } from "./SummaryPanel";
 import type { Reading, ReadingNote, UiLanguage } from "@/lib/types";
 
 /* Reading an ayah, clause by clause.
@@ -81,9 +82,11 @@ function Note({ note, language }: { note: ReadingNote; language: UiLanguage }) {
 export function ReadingView({
   reading,
   language,
+  works,
 }: {
   reading: Reading;
   language: UiLanguage;
+  works?: string[] | null;
 }) {
   const t = COPY[language];
 
@@ -113,6 +116,13 @@ export function ReadingView({
           </div>
         ))}
       </section>
+
+      <SummaryPanel
+        surah={reading.surah_number}
+        ayah={reading.ayah_number}
+        language={language}
+        works={works}
+      />
 
       <p className="method-note">{reading.method_note}</p>
 

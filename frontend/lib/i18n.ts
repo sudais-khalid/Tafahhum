@@ -63,6 +63,19 @@ type Copy = {
   hideArabic: string;
   matchedByOverlap: string;
   readingTab: string;
+  synthesisLabel: string;
+  synthesisCaveat: string;
+  synthesisNotice: string;
+  buildSummary: string;
+  summarising: string;
+  summaryFailed: string;
+  sentencesWritten: string;
+  sentencesKept: string;
+  sentencesRemoved: string;
+  meanSupport: string;
+  builtFrom: string;
+  showRemoved: (n: number) => string;
+  hideRemoved: string;
   evidenceTab: string;
   tradition: (key: string) => string;
   method: (key: string) => string;
@@ -147,6 +160,21 @@ const en: Copy = {
   hideArabic: "Hide the Arabic",
   matchedByOverlap: "matched by wording, not quoted",
   readingTab: "Read",
+  synthesisLabel: "Tafahhum synthesis",
+  synthesisCaveat:
+    "Written by Tafahhum from the commentaries below — not by a commentator, and not a ruling.",
+  synthesisNotice:
+    "Every sentence was checked against the passage it cites; any that could not be traced was removed.",
+  buildSummary: "Build a conclusion",
+  summarising: "Reading the commentaries…",
+  summaryFailed: "The conclusion could not be produced. The commentaries below are unaffected.",
+  sentencesWritten: "Sentences written",
+  sentencesKept: "Kept",
+  sentencesRemoved: "Removed",
+  meanSupport: "Mean support",
+  builtFrom: "Passages used",
+  showRemoved: (n) => `Show the ${n} removed sentence${n === 1 ? "" : "s"}`,
+  hideRemoved: "Hide removed sentences",
   evidenceTab: "Evidence",
   tradition: (k) =>
     ({
@@ -253,6 +281,19 @@ const ar: Copy = {
   hideArabic: "إخفاء النص العربي",
   matchedByOverlap: "مطابقة بالألفاظ لا بالنص",
   readingTab: "قراءة",
+  synthesisLabel: "خلاصة تفهّم",
+  synthesisCaveat: "كتبها تفهّم من التفاسير أدناه، لا مفسّر، وليست فتوى.",
+  synthesisNotice: "قوبلت كل جملة بالنص الذي تحيل إليه، وحُذف ما لم يمكن ردّه إليه.",
+  buildSummary: "استخراج خلاصة",
+  summarising: "قراءة التفاسير…",
+  summaryFailed: "تعذّر إنتاج الخلاصة. والتفاسير أدناه لم تتأثر.",
+  sentencesWritten: "الجمل المكتوبة",
+  sentencesKept: "المُبقاة",
+  sentencesRemoved: "المحذوفة",
+  meanSupport: "متوسط الإسناد",
+  builtFrom: "النصوص المعتمدة",
+  showRemoved: (n) => `إظهار ${n} من الجمل المحذوفة`,
+  hideRemoved: "إخفاء المحذوفة",
   evidenceTab: "الشواهد",
   tradition: (k) =>
     ({
@@ -361,6 +402,19 @@ const ur: Copy = {
   hideArabic: "عربی متن چھپائیے",
   matchedByOverlap: "الفاظ سے مطابقت، اقتباس سے نہیں",
   readingTab: "مطالعہ",
+  synthesisLabel: "تفہّم کی خلاصہ",
+  synthesisCaveat: "یہ تفہّم نے نیچے دی گئی تفاسیر سے لکھی ہے؛ کسی مفسر کا کلام نہیں، اور فتویٰ نہیں۔",
+  synthesisNotice: "ہر جملہ اس عبارت سے جانچا گیا جس کا حوالہ دیا گیا؛ جو نہ جچ سکا وہ حذف کر دیا گیا۔",
+  buildSummary: "خلاصہ نکالیے",
+  summarising: "تفاسیر پڑھی جا رہی ہیں…",
+  summaryFailed: "خلاصہ تیار نہ ہو سکا۔ نیچے کی تفاسیر غیر متاثر ہیں۔",
+  sentencesWritten: "لکھے گئے جملے",
+  sentencesKept: "رکھے گئے",
+  sentencesRemoved: "حذف شدہ",
+  meanSupport: "اوسط سند",
+  builtFrom: "استعمال شدہ عبارات",
+  showRemoved: (n) => `${n} حذف شدہ جملے دیکھیے`,
+  hideRemoved: "حذف شدہ چھپائیے",
   evidenceTab: "شواہد",
   tradition: (k) =>
     ({
