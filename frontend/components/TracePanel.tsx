@@ -5,7 +5,7 @@ import { COPY } from "@/lib/i18n";
  *
  * Shows system decisions and evidence counts: which strategies ran, how many
  * candidates each produced, and which rules fired with what they are grounded
- * in. It deliberately exposes no model reasoning — the useful thing to audit is
+ * in. It deliberately exposes no model reasoning, the useful thing to audit is
  * the retrieval path, not a narration of it. */
 
 export function TracePanel({ result, language }: { result: QueryResult; language: UiLanguage }) {
@@ -26,19 +26,19 @@ export function TracePanel({ result, language }: { result: QueryResult; language
           <div className="trace-item">
             <dt>{t.pivotQuery}</dt>
             <dd lang="ar" dir="rtl">
-              {result.pivot_query || "—"}
+              {result.pivot_query || "-"}
             </dd>
           </div>
           <div className="trace-item">
             <dt>{t.strategies}</dt>
-            <dd>{trace.strategies_run.join(" + ") || "—"}</dd>
+            <dd>{trace.strategies_run.join(" + ") || "-"}</dd>
           </div>
           <div className="trace-item">
             <dt>{t.candidates}</dt>
             <dd>
               {Object.entries(trace.candidates_per_strategy)
                 .map(([k, v]) => `${k} ${v}`)
-                .join(" · ") || "—"}
+                .join(" · ") || "-"}
             </dd>
           </div>
           <div className="trace-item">

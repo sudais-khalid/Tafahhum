@@ -44,11 +44,11 @@ export function References({
               <div className="ref-body">
                 <div className="ref-title">
                   <strong>{author}</strong>
-                  {" — "}
+                  {", "}
                   {title}
                 </div>
                 <div className="ref-title-ar" lang="ar" dir="rtl">
-                  {r.author_name_ar} — {r.work_title_ar}
+                  {r.author_name_ar}, {r.work_title_ar}
                 </div>
 
                 <dl className="ref-fields">

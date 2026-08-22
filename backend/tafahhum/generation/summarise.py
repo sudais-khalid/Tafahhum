@@ -253,9 +253,13 @@ def verify(
         if len(sentence) < 15:
             continue
 
-        cited = [int(n) for n in _CITATION.findall(sentence)]
-        valid = [n for n in cited if 1 <= n <= len(passages)]
+        # A marker the model wrote is a claim about its source, not evidence of
+        # one, and small models place them unreliably or omit them entirely.
+        # Attribution is therefore computed: each sentence is matched against
+        # every passage and assigned to the one it actually overlaps. The model
+        # never gets to assert a source, so it cannot misattribute one.
         bare = _CITATION.sub("", sentence).strip()
+        declared = [int(n) for n in _CITATION.findall(sentence)]
 
         if _LATIN_IN_ARABIC.search(bare):
             out.append(
@@ -275,18 +279,20 @@ def verify(
             )
             continue
 
-        if not cited:
-            out.append(SummarySentence(bare, [], 0.0, False, "no citation"))
-            continue
-        if not valid:
-            out.append(
-                SummarySentence(bare, cited, 0.0, False, "citation out of range")
-            )
-            continue
-
-        # Best-supporting cited passage decides: a sentence drawing on several
-        # passages should not be penalised for the weakest of them.
-        best = max(support_score(bare, passages[n - 1]["text"]) for n in valid)
+        scores = [support_score(bare, p["text"]) for p in passages]
+        best = max(scores) if scores else 0.0
+        # Every passage the sentence genuinely draws on, not only the best one.
+        valid = [
+            i + 1
+            for i, sc in enumerate(scores)
+            if sc >= MIN_SUPPORT and sc >= best * 0.75
+        ]
+        # A marker the model wrote that survives measurement is kept, so a
+        # correctly cited sentence still reads as the model intended.
+        for n in declared:
+            if 1 <= n <= len(passages) and n not in valid and scores[n - 1] >= MIN_SUPPORT:
+                valid.append(n)
+        valid.sort()
         if best > MAX_SUPPORT and len(content_words(bare)) > 6:
             out.append(
                 SummarySentence(
@@ -295,11 +301,11 @@ def verify(
                 )
             )
             continue
-        if best < MIN_SUPPORT:
+        if not valid:
             out.append(
                 SummarySentence(
-                    bare, valid, round(best, 3), False,
-                    f"insufficient overlap with cited passage ({best:.0%})",
+                    bare, [], round(best, 3), False,
+                    f"no passage supports this sentence (best match {best:.0%})",
                 )
             )
             continue

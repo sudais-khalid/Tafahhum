@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { COPY } from "@/lib/i18n";
 import { SummaryPanel } from "./SummaryPanel";
+import { TranslateButton } from "./TranslateButton";
 import type { Reading, ReadingNote, UiLanguage } from "@/lib/types";
 
 /* Reading an ayah, clause by clause.
@@ -34,39 +35,42 @@ function Note({ note, language }: { note: ReadingNote; language: UiLanguage }) {
         <span className="note-ref">[{note.reference_number}]</span>
       </header>
 
-      {/* The reader's language first when a translation exists — this view is
-          for understanding. The Arabic stays one click away, never replaced. */}
-      {note.translation ? (
-        <p className="note-translation" lang={language} dir={language === "en" ? "ltr" : "rtl"}>
-          {note.translation}
-        </p>
-      ) : (
-        <p className="note-gist" lang="ar" dir="rtl">
-          {note.gist ?? note.text.slice(0, 220)}
-        </p>
-      )}
+      {/* The commentator's own words, always present and never replaced. */}
+      <p className="note-gist" lang="ar" dir="rtl">
+        {expanded ? note.text : (note.gist ?? note.text.slice(0, 220))}
+      </p>
 
       <div className="note-actions">
         <button type="button" onClick={() => setExpanded(!expanded)}>
-          {expanded ? t.hideArabic : t.showArabic}
+          {expanded ? t.showLess : t.showFullArabic}
         </button>
         {inferred && (
           <span className="chip" data-tone="warn">
             {t.matchedByOverlap}
           </span>
         )}
-        {note.is_machine_translation && (
-          <span className="chip" data-tone="warn">
-            {t.machineTranslation}
-          </span>
-        )}
       </div>
+
+      <TranslateButton
+        passageId={note.passage_id}
+        language={language}
+        initial={
+          note.translation
+            ? {
+                text: note.translation,
+                language,
+                translator_kind: "MACHINE",
+                translator_name: note.translator_name ?? "",
+                model_name: null,
+                verification_status: "MACHINE_PROPOSED",
+                is_machine: note.is_machine_translation,
+              }
+            : null
+        }
+      />
 
       {expanded && (
         <div className="note-full reveal">
-          <p className="note-arabic" lang="ar" dir="rtl">
-            {note.text}
-          </p>
           <p className="note-citation">{note.citation}</p>
           {note.translator_name && (
             <p className="note-citation">
@@ -181,7 +185,7 @@ export function ReadingView({
               <div className="ref-body">
                 <div className="ref-title">{r.citation}</div>
                 <div className="ref-title-ar" lang="ar" dir="rtl">
-                  {r.author_ar} — {r.work_title_ar}
+                  {r.author_ar}, {r.work_title_ar}
                 </div>
               </div>
             </li>

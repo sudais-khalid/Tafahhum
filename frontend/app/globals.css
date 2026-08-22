@@ -1441,3 +1441,61 @@ button {
   line-height: 1.6;
   color: var(--ink-faint);
 }
+
+
+/* ------------------------------------------------------- translate button */
+
+.translate-block {
+  margin-top: 0.75rem;
+}
+
+.translate-cta {
+  border: 1px solid var(--accent);
+  background: transparent;
+  color: var(--accent);
+  border-radius: var(--radius);
+  padding: 0.28rem 0.8rem;
+  font-family: var(--font-ui);
+  font-size: 0.76rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.translate-cta:hover:not(:disabled) {
+  background: var(--accent);
+  color: #fff;
+}
+
+.translate-cta:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.translate-cta .spinner-dark {
+  border-color: rgba(47, 93, 98, 0.35);
+  border-top-color: var(--accent);
+}
+
+/* Indented and ruled so a translation reads as a rendering of the passage
+   above it, never as a second passage. */
+.translate-body {
+  margin-top: 0.8rem;
+  padding-inline-start: 0.9rem;
+  border-inline-start: 2px solid var(--accent-wash);
+}
+
+.translate-problem {
+  margin: 0.55rem 0 0;
+  font-family: var(--font-ui);
+  font-size: 0.76rem;
+  color: var(--warn);
+}
+
+.synthesis-progress {
+  margin: 0.8rem 0 0;
+  font-family: var(--font-ui);
+  font-size: 0.83rem;
+  color: var(--accent-hover);
+}

@@ -59,8 +59,8 @@ type Copy = {
   scholarsOnThisClause: (n: number) => string;
   noSeparateTreatment: string;
   furtherDiscussion: string;
-  showArabic: string;
-  hideArabic: string;
+  showFullArabic: string;
+  showLess: string;
   matchedByOverlap: string;
   readingTab: string;
   synthesisLabel: string;
@@ -141,7 +141,7 @@ const en: Copy = {
   translationPendingNote:
     "No translation stored for this passage yet. The Arabic above is the source.",
   translationSlowNote:
-    "Translating on the local model — this takes a few minutes per passage on CPU. The Arabic above is complete and unaffected.",
+    "Translating on the local model, this takes a few minutes per passage on CPU. The Arabic above is complete and unaffected.",
   translationRejected:
     "The local model produced unusable output for this language and it was discarded rather than shown.",
   sourcesChoose: "Choose sources",
@@ -156,13 +156,13 @@ const en: Copy = {
   noSeparateTreatment:
     "No commentary in your selection treats this clause on its own; it is discussed together with the clause beside it.",
   furtherDiscussion: "Further discussion of this ayah",
-  showArabic: "Show the Arabic",
-  hideArabic: "Hide the Arabic",
+  showFullArabic: "Show the full passage",
+  showLess: "Show less",
   matchedByOverlap: "matched by wording, not quoted",
   readingTab: "Read",
   synthesisLabel: "Tafahhum synthesis",
   synthesisCaveat:
-    "Written by Tafahhum from the commentaries below — not by a commentator, and not a ruling.",
+    "Written by Tafahhum from the commentaries below, not by a commentator, and not a ruling.",
   synthesisNotice:
     "Every sentence was checked against the passage it cites; any that could not be traced was removed.",
   buildSummary: "Build a conclusion",
@@ -180,8 +180,8 @@ const en: Copy = {
     ({
       EARLY: "Early",
       SUNNI: "Sunni",
-      SUNNI_SUFI: "Sunni — Sufi",
-      SUNNI_SALAFI: "Sunni — Salafi",
+      SUNNI_SUFI: "Sunni, Sufi",
+      SUNNI_SALAFI: "Sunni, Salafi",
       MODERNIST: "Modernist",
       MUTAZILA: "Mu'tazila",
       TWELVER_SHIA: "Twelver Shia",
@@ -277,8 +277,8 @@ const ar: Copy = {
   scholarsOnThisClause: (n) => `${n} من التفاسير في هذا المقطع`,
   noSeparateTreatment: "لم يفرد أحد من التفاسير المختارة هذا المقطع بالكلام، بل تُكلم عليه مع ما بجانبه.",
   furtherDiscussion: "مباحث أخرى في هذه الآية",
-  showArabic: "إظهار النص العربي",
-  hideArabic: "إخفاء النص العربي",
+  showFullArabic: "إظهار النص كاملًا",
+  showLess: "إظهار أقل",
   matchedByOverlap: "مطابقة بالألفاظ لا بالنص",
   readingTab: "قراءة",
   synthesisLabel: "خلاصة تفهّم",
@@ -299,8 +299,8 @@ const ar: Copy = {
     ({
       EARLY: "المتقدمون",
       SUNNI: "أهل السنة",
-      SUNNI_SUFI: "أهل السنة — الصوفية",
-      SUNNI_SALAFI: "أهل السنة — السلفية",
+      SUNNI_SUFI: "أهل السنة, الصوفية",
+      SUNNI_SALAFI: "أهل السنة, السلفية",
       MODERNIST: "المعاصرون",
       MUTAZILA: "المعتزلة",
       TWELVER_SHIA: "الشيعة الإمامية",
@@ -398,8 +398,8 @@ const ur: Copy = {
   noSeparateTreatment:
     "منتخب تفاسیر میں سے کسی نے اس جزو پر الگ کلام نہیں کیا؛ اسے ساتھ والے جزو کے ساتھ بیان کیا گیا ہے۔",
   furtherDiscussion: "اس آیت پر مزید مباحث",
-  showArabic: "عربی متن دکھائیے",
-  hideArabic: "عربی متن چھپائیے",
+  showFullArabic: "مکمل عبارت دکھائیے",
+  showLess: "کم دکھائیے",
   matchedByOverlap: "الفاظ سے مطابقت، اقتباس سے نہیں",
   readingTab: "مطالعہ",
   synthesisLabel: "تفہّم کی خلاصہ",
@@ -420,8 +420,8 @@ const ur: Copy = {
     ({
       EARLY: "متقدمین",
       SUNNI: "اہلِ سنت",
-      SUNNI_SUFI: "اہلِ سنت — صوفیہ",
-      SUNNI_SALAFI: "اہلِ سنت — سلفیہ",
+      SUNNI_SUFI: "اہلِ سنت, صوفیہ",
+      SUNNI_SALAFI: "اہلِ سنت, سلفیہ",
       MODERNIST: "جدید",
       MUTAZILA: "معتزلہ",
       TWELVER_SHIA: "اثنا عشری شیعہ",

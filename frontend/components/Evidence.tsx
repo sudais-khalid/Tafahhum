@@ -1,10 +1,11 @@
 import type { Ayah, Passage, PassageTranslation, UiLanguage, Work } from "@/lib/types";
 import { COPY } from "@/lib/i18n";
 import { ProvenanceLadder } from "./ProvenanceLadder";
+import { TranslateButton } from "./TranslateButton";
 
 /* Quranic text is rendered by its own component, in its own colour, in its own
  * block. It is never a card in the evidence list, because it is not evidence
- * about the ayah — it is the ayah. */
+ * about the ayah, it is the ayah. */
 
 export function AyahBlock({ ayah, language }: { ayah: Ayah; language: UiLanguage }) {
   const t = COPY[language];
@@ -72,39 +73,11 @@ function PassageBlock({
         </p>
       </div>
 
-      {/* The rendering, always additive and always labelled. */}
-      {showTranslation && (
-        <div className="passage-translated">
-          <div className="text-label">
-            {t.translationInto(t.languageName)}
-            {translation?.is_machine && (
-              <span className="chip" data-tone="warn">
-                {t.machineTranslation}
-              </span>
-            )}
-          </div>
-          {/* Three distinct states, because they mean different things to a
-              reader: a translation exists, one is being produced, or one was
-              attempted and rejected. Collapsing them would hide a failure. */}
-          {translation && translation.text ? (
-            <p
-              className="translation-text"
-              lang={language}
-              dir={language === "en" ? "ltr" : "rtl"}
-            >
-              {translation.text}
-            </p>
-          ) : translation ? (
-            <p className="translation-placeholder" data-tone="warn">
-              {translation.note ?? t.translationRejected}
-            </p>
-          ) : (
-            <p className="translation-placeholder">
-              {translationPending ? t.translationSlowNote : t.translationPendingNote}
-            </p>
-          )}
-        </div>
-      )}
+            <TranslateButton
+        passageId={passage.passage_id}
+        language={language}
+        initial={translation ?? passage.translation ?? null}
+      />
 
       <ProvenanceLadder citation={passage.citation} language={language} />
 

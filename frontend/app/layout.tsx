@@ -12,7 +12,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        {/* Amiri is a Naskh revival drawn from the Bulaq press types — the
+        {/* Amiri is a Naskh revival drawn from the Bulaq press types, the
             typographic tradition printed Tafsir actually belongs to. Urdu is set
             in Nastaliq, the script Urdu readers expect. */}
         <link

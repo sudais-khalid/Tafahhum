@@ -237,7 +237,9 @@ export interface Reading {
 }
 
 export interface AyahSummary {
-  status: "generated" | "cached" | "unavailable" | "insufficient";
+  // Mirrors the backend: a job is started and polled, so "pending" is a
+  // normal state rather than an error.
+  status: "ready" | "pending" | "unavailable" | "insufficient";
   summary: string | null;
   summary_ar?: string;
   reason?: string;

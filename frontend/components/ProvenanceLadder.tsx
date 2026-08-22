@@ -4,7 +4,7 @@ import { COPY } from "@/lib/i18n";
 /* The provenance ladder.
  *
  * Shows how far a citation actually resolves, from the work down to the
- * scanned page. A hollow dot is not a styling choice — it is the corpus
+ * scanned page. A hollow dot is not a styling choice, it is the corpus
  * telling the reader that this link in the chain does not exist yet.
  *
  * Putting this on every passage rather than in a footnote means a limitation

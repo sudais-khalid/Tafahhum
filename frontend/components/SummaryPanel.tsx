@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { COPY } from "@/lib/i18n";
 import type { AyahSummary, UiLanguage } from "@/lib/types";
 
@@ -37,18 +37,44 @@ export function SummaryPanel({
   const [error, setError] = useState<string | null>(null);
   const [showRemoved, setShowRemoved] = useState(false);
 
+  const polling = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Stop polling when the reader navigates away mid-job.
+  useEffect(() => {
+    return () => {
+      if (polling.current) clearTimeout(polling.current);
+    };
+  }, []);
+
+  async function ask(): Promise<AyahSummary | null> {
+    const params = new URLSearchParams({ language });
+    if (works && works.length > 0) params.set("works", works.join(","));
+    const res = await fetch(
+      `${API}/api/v1/read/${surah}/${ayah}/summary?${params}`,
+      { method: "POST" },
+    );
+    if (!res.ok) throw new Error(String(res.status));
+    return (await res.json()) as AyahSummary;
+  }
+
+  /* Generation runs for minutes, so the request that starts it returns at once
+     and the answer is collected by polling. Without this the button would look
+     broken for the whole run and then time out. */
   async function load() {
     setLoading(true);
     setError(null);
     try {
-      const params = new URLSearchParams({ language });
-      if (works && works.length > 0) params.set("works", works.join(","));
-      const res = await fetch(
-        `${API}/api/v1/read/${surah}/${ayah}/summary?${params}`,
-        { method: "POST" },
-      );
-      if (!res.ok) throw new Error(String(res.status));
-      setData((await res.json()) as AyahSummary);
+      let body = await ask();
+      let waited = 0;
+      while (body && body.status === "pending" && waited < 600) {
+        setData(body);
+        await new Promise((r) => {
+          polling.current = setTimeout(r, 5000);
+        });
+        waited += 5;
+        body = await ask();
+      }
+      setData(body);
     } catch {
       setError(t.summaryFailed);
     } finally {
@@ -56,14 +82,15 @@ export function SummaryPanel({
     }
   }
 
-  const unavailable = data && data.status === "unavailable";
-  const insufficient = data && data.status === "insufficient";
+  const pending = data?.status === "pending";
+  const unavailable = data?.status === "unavailable";
+  const insufficient = data?.status === "insufficient";
 
   return (
     <section className="synthesis">
       <div className="synthesis-head">
         <span className="synthesis-label">{t.synthesisLabel}</span>
-        {!data && (
+        {(!data || pending || unavailable || insufficient) && (
           <button type="button" onClick={() => void load()} disabled={loading}>
             {loading ? (
               <>
@@ -79,6 +106,8 @@ export function SummaryPanel({
       <p className="synthesis-caveat">{t.synthesisCaveat}</p>
 
       {error && <p className="synthesis-problem">{error}</p>}
+
+      {pending && <p className="synthesis-progress">{data?.reason}</p>}
 
       {(unavailable || insufficient) && (
         <p className="synthesis-problem">{data?.reason}</p>
@@ -99,22 +128,22 @@ export function SummaryPanel({
           <dl className="synthesis-audit">
             <div>
               <dt>{t.sentencesWritten}</dt>
-              <dd>{data.sentences_generated ?? "—"}</dd>
+              <dd>{data.sentences_generated ?? "-"}</dd>
             </div>
             <div>
               <dt>{t.sentencesKept}</dt>
-              <dd>{data.sentences_kept ?? "—"}</dd>
+              <dd>{data.sentences_kept ?? "-"}</dd>
             </div>
             <div>
               <dt>{t.sentencesRemoved}</dt>
-              <dd>{data.sentences_removed ?? "—"}</dd>
+              <dd>{data.sentences_removed ?? "-"}</dd>
             </div>
             <div>
               <dt>{t.meanSupport}</dt>
               <dd>
                 {data.mean_support != null
                   ? `${Math.round(data.mean_support * 100)}%`
-                  : "—"}
+                  : "-"}
               </dd>
             </div>
             <div>
