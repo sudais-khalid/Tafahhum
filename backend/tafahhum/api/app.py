@@ -14,6 +14,7 @@ from tafahhum.api.schemas import QueryIn, QueryOut, serialise
 from tafahhum.core.config import get_settings
 from tafahhum.core.enums import USER_LANGUAGES, Language
 from tafahhum.db.pool import connection, get_pool
+from tafahhum.generation.service import get_or_create_summary
 from tafahhum.language.translate import translate_passage
 from tafahhum.pipeline import QueryRequest, run_query
 from tafahhum.quran.reference import parse_ayah_references
@@ -442,6 +443,28 @@ def read(
             detail=f"{surah}:{ayah} is not in the corpus yet",
         )
     return result
+
+
+@app.post(f"{API}/read/{{surah}}/{{ayah}}/summary")
+def summary(
+    surah: int,
+    ayah: int,
+    language: Language = Query(default=Language.EN),
+    works: str | None = Query(default=None, description="Comma-separated work slugs"),
+    force: bool = Query(default=False, description="Regenerate rather than reuse"),
+) -> dict:
+    """A conclusion for this ayah, written from the retrieved commentaries.
+
+    The one endpoint in the system that returns generated text. It is typed
+    TAFAHHUM_SYNTHESIS, carries the passages it was built from, and reports how
+    many of its own sentences were discarded for failing verification.
+    """
+    slugs = [s.strip() for s in works.split(",") if s.strip()] if works else None
+    with connection() as conn:
+        return get_or_create_summary(
+            conn, surah=surah, ayah=ayah, language=language,
+            work_slugs=slugs, force=force,
+        )
 
 
 @app.get(f"{API}/catalogue")

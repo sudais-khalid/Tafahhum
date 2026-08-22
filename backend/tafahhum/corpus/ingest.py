@@ -40,6 +40,18 @@ from tafahhum.core.enums import (
 from tafahhum.corpus.chunking import chunk_commentary
 
 
+def _returned_id(row) -> str:
+    """Read a RETURNING id from a row, whatever row factory the caller used.
+
+    These helpers are called from several scripts, and psycopg hands back tuples
+    or dicts depending on how the connection was opened. Assuming one shape made
+    the ingestion crash the first time it was called from a dict_row connection.
+    """
+    if row is None:
+        raise RuntimeError("expected a RETURNING id but got no row")
+    return row["id"] if isinstance(row, dict) else row[0]
+
+
 @dataclass(frozen=True)
 class SourceWork:
     """Metadata for a work being ingested, as supplied by the source."""
@@ -126,7 +138,7 @@ def upsert_mufassir(cur: psycopg.Cursor, work: SourceWork) -> str:
             "bibliographical source.",
         ),
     )
-    return cur.fetchone()[0]
+    return _returned_id(cur.fetchone())
 
 
 def upsert_work(cur: psycopg.Cursor, work: SourceWork, author_id: str) -> str:
@@ -172,7 +184,7 @@ def upsert_work(cur: psycopg.Cursor, work: SourceWork, author_id: str) -> str:
             work.is_default_source,
         ),
     )
-    return cur.fetchone()[0]
+    return _returned_id(cur.fetchone())
 
 
 def upsert_edition(cur: psycopg.Cursor, work: SourceWork, work_id: str) -> str:
@@ -206,7 +218,7 @@ def upsert_edition(cur: psycopg.Cursor, work: SourceWork, work_id: str) -> str:
             "unavailable, so citations resolve to the work but not to a page.",
         ),
     )
-    return cur.fetchone()[0]
+    return _returned_id(cur.fetchone())
 
 
 # ---------------------------------------------------------------------------

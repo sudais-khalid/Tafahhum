@@ -30,6 +30,7 @@ build/
 # licensing has not been established. It is re-fetchable at any time with
 # scripts/fetch_corpus.py, so nothing is lost by keeping it out.
 data/seed/tafsir/
+data/seed/surah/
 data/seed/*.json
 data/quran/*.json
 data/scans/

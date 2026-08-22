@@ -207,8 +207,22 @@ class TestPipeline:
         assert any("page-level citation" in n for n in pkg.notes)
 
     def test_empty_evidence_is_reported_not_invented(self, conn, seeded):
-        """An unindexed ayah must yield an explicit statement, not a guess."""
-        pkg = run_query(conn, QueryRequest(text="Surah 50 ayah 20", user_language=Language.EN))
+        """No evidence must yield an explicit statement, not a guess.
+
+        Scoped to a work that does not exist rather than to an ayah that happens
+        to be unindexed: the earlier version named surah 50, and broke the moment
+        the corpus grew to cover it. What is being tested is the behaviour when
+        retrieval returns nothing, which should not depend on how much has been
+        ingested.
+        """
+        pkg = run_query(
+            conn,
+            QueryRequest(
+                text="2:255",
+                user_language=Language.EN,
+                work_slugs=["no-such-work-in-the-catalogue"],
+            ),
+        )
         assert pkg.is_empty
         assert any("Insufficient verified evidence" in n for n in pkg.notes)
 
