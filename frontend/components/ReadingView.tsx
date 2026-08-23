@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { COPY } from "@/lib/i18n";
+import type { Depth } from "@/lib/depth";
 import { SummaryPanel } from "./SummaryPanel";
 import { TranslateButton } from "./TranslateButton";
-import type { Reading, ReadingNote, UiLanguage } from "@/lib/types";
+import type { Reading, ReadingNote, ReadingPhrase, UiLanguage } from "@/lib/types";
 
 /* Reading an ayah, clause by clause.
  *
@@ -17,6 +18,10 @@ import type { Reading, ReadingNote, UiLanguage } from "@/lib/types";
  * than by hiding the machinery: a passage that quoted the clause is marked
  * differently from one matched by word overlap, because the second is a weaker
  * claim and a reader deserves to know which they are looking at. */
+
+/** How many commentators lead a clause at learning depth. The rest are one
+ *  click away and counted on the button, never dropped. */
+const LEARN_VISIBLE = 2;
 
 function Note({ note, language }: { note: ReadingNote; language: UiLanguage }) {
   const t = COPY[language];
@@ -83,16 +88,89 @@ function Note({ note, language }: { note: ReadingNote; language: UiLanguage }) {
   );
 }
 
+/** The notes under one clause, with the learning-depth cap made visible.
+ *
+ * The cap is applied here rather than in CSS on purpose. Hiding commentators
+ * with a display rule would leave no honest way to say how many were held
+ * back, and an interface built to show all the evidence must not quietly show
+ * less of it. */
+function ClauseNotes({
+  notes,
+  language,
+  depth,
+}: {
+  notes: ReadingNote[];
+  language: UiLanguage;
+  depth: Depth;
+}) {
+  const t = COPY[language];
+  const [showAll, setShowAll] = useState(false);
+  const capped = depth === "learn" && !showAll && notes.length > LEARN_VISIBLE;
+  const shown = capped ? notes.slice(0, LEARN_VISIBLE) : notes;
+
+  return (
+    <>
+      <div className="clause-notes">
+        {shown.map((n) => (
+          <Note key={n.passage_id} note={n} language={language} />
+        ))}
+      </div>
+      {capped && (
+        <div className="clause-more">
+          <button type="button" onClick={() => setShowAll(true)}>
+            {t.showMoreCommentators(notes.length - LEARN_VISIBLE)}
+          </button>
+        </div>
+      )}
+    </>
+  );
+}
+
+function ClauseNav({
+  phrases,
+  language,
+}: {
+  phrases: ReadingPhrase[];
+  language: UiLanguage;
+}) {
+  const t = COPY[language];
+
+  return (
+    <div className="rail-section">
+      <div className="rail-heading">{t.clausesInVerse}</div>
+      <nav className="clause-nav">
+        {phrases.map((phrase, i) => (
+          <a
+            key={phrase.index}
+            href={`#clause-${phrase.index}`}
+            title={t.jumpToClause(i + 1)}
+          >
+            <span className="clause-nav-number">{i + 1}</span>
+            <span className="clause-nav-text" lang="ar" dir="rtl">
+              {phrase.text_ar}
+            </span>
+            <span className="clause-nav-count">{phrase.scholar_count}</span>
+          </a>
+        ))}
+      </nav>
+      <p className="rail-hint">{t.clauseNavHint}</p>
+    </div>
+  );
+}
+
 export function ReadingView({
   reading,
   language,
   works,
+  depth,
 }: {
   reading: Reading;
   language: UiLanguage;
   works?: string[] | null;
+  depth: Depth;
 }) {
   const t = COPY[language];
+  const translation = reading.translations[0];
 
   return (
     <div className="reading">
@@ -105,93 +183,106 @@ export function ReadingView({
         </span>
       </header>
 
-      {/* The whole ayah first, so a reader sees it before it is taken apart. */}
-      <section className="ayah reveal">
-        <div className="ayah-label">{t.ayahHeading}</div>
-        <p className="ayah-text" lang="ar" dir="rtl">
-          {reading.text_uthmani}
-        </p>
-        {reading.translations.slice(0, 1).map((tr) => (
-          <div className="ayah-translation" key={tr.translation_slug}>
-            <p lang={language} dir={language === "en" ? "ltr" : "rtl"}>
-              {tr.text}
-            </p>
-            <span className="ayah-translator">{tr.translator_name}</span>
-          </div>
-        ))}
-      </section>
+      <div className="reading-layout">
+        {/* The ayah stays in view while the commentary beside it scrolls. */}
+        <aside className="reading-rail">
+          <div className="rail-label">{t.ayahHeading}</div>
+          <p className="rail-ayah" lang="ar" dir="rtl">
+            {reading.text_uthmani}
+          </p>
 
-      <SummaryPanel
-        surah={reading.surah_number}
-        ayah={reading.ayah_number}
-        language={language}
-        works={works}
-      />
-
-      <p className="method-note">{reading.method_note}</p>
-
-      <ol className="clauses">
-        {reading.phrases.map((phrase, i) => (
-          <li className="clause reveal" key={phrase.index}>
-            <div className="clause-head">
-              <span className="clause-number">{i + 1}</span>
-              <p className="clause-text" lang="ar" dir="rtl">
-                {phrase.text_ar}
+          {translation && (
+            <div className="rail-translation">
+              <p lang={language} dir={language === "en" ? "ltr" : "rtl"}>
+                {translation.text}
               </p>
+              <span className="rail-translator">{translation.translator_name}</span>
             </div>
+          )}
 
-            {phrase.notes.length > 0 ? (
-              <>
-                <div className="clause-meta">
-                  {t.scholarsOnThisClause(phrase.scholar_count)}
-                </div>
-                <div className="clause-notes">
-                  {phrase.notes.map((n) => (
-                    <Note key={n.passage_id} note={n} language={language} />
-                  ))}
-                </div>
-              </>
-            ) : (
-              <div className="clause-meta">{t.noSeparateTreatment}</div>
-            )}
-          </li>
-        ))}
-      </ol>
+          <ClauseNav phrases={reading.phrases} language={language} />
+        </aside>
 
-      {reading.further_discussion.count > 0 && (
-        <section className="further">
-          <div className="section-head">
-            <h2>{t.furtherDiscussion}</h2>
-            <span className="count">{reading.further_discussion.count}</span>
-          </div>
-          <p className="method-note">{reading.further_discussion.explanation}</p>
-          <div className="clause-notes">
-            {reading.further_discussion.notes.map((n) => (
-              <Note key={n.passage_id} note={n} language={language} />
+        <div className="reading-main">
+          <SummaryPanel
+            surah={reading.surah_number}
+            ayah={reading.ayah_number}
+            language={language}
+            works={works}
+          />
+
+          <p className="method-note">{reading.method_note}</p>
+
+          <ol className="clauses">
+            {reading.phrases.map((phrase, i) => (
+              <li
+                className="clause reveal"
+                key={phrase.index}
+                id={`clause-${phrase.index}`}
+              >
+                <div className="clause-head">
+                  <span className="clause-number">{i + 1}</span>
+                  <p className="clause-text" lang="ar" dir="rtl">
+                    {phrase.text_ar}
+                  </p>
+                </div>
+
+                {phrase.notes.length > 0 ? (
+                  <>
+                    <div className="clause-meta">
+                      {t.scholarsOnThisClause(phrase.scholar_count)}
+                    </div>
+                    <ClauseNotes
+                      notes={phrase.notes}
+                      language={language}
+                      depth={depth}
+                    />
+                  </>
+                ) : (
+                  <div className="clause-meta">{t.noSeparateTreatment}</div>
+                )}
+              </li>
             ))}
-          </div>
-        </section>
-      )}
+          </ol>
 
-      <section className="references">
-        <div className="section-head">
-          <h2>{t.referencesHeading}</h2>
-          <span className="count">{t.sourcesConsulted(reading.references.length)}</span>
-        </div>
-        <ol className="ref-list">
-          {reading.references.map((r) => (
-            <li className="ref-item" key={r.work_slug}>
-              <span className="ref-number">[{r.number}]</span>
-              <div className="ref-body">
-                <div className="ref-title">{r.citation}</div>
-                <div className="ref-title-ar" lang="ar" dir="rtl">
-                  {r.author_ar}, {r.work_title_ar}
-                </div>
+          {reading.further_discussion.count > 0 && (
+            <section className="further">
+              <div className="section-head">
+                <h2>{t.furtherDiscussion}</h2>
+                <span className="count">{reading.further_discussion.count}</span>
               </div>
-            </li>
-          ))}
-        </ol>
-      </section>
+              <p className="method-note">{reading.further_discussion.explanation}</p>
+              <div className="clause-notes">
+                {reading.further_discussion.notes.map((n) => (
+                  <Note key={n.passage_id} note={n} language={language} />
+                ))}
+              </div>
+            </section>
+          )}
+
+          <section className="references">
+            <div className="section-head">
+              <h2>{t.referencesHeading}</h2>
+              <span className="count">
+                {t.sourcesConsulted(reading.references.length)}
+              </span>
+            </div>
+            <ol className="ref-list">
+              {reading.references.map((r) => (
+                <li className="ref-item" key={r.work_slug}>
+                  <span className="ref-number">[{r.number}]</span>
+                  <div className="ref-body">
+                    <div className="ref-title">{r.citation}</div>
+                    <div className="ref-title-ar" lang="ar" dir="rtl">
+                      {r.author_ar}, {r.work_title_ar}
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </section>
+        </div>
+      </div>
     </div>
   );
 }

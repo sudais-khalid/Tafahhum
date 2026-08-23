@@ -6,6 +6,7 @@ import { ReadingView } from "@/components/ReadingView";
 import { References } from "@/components/References";
 import { SourceSelector } from "@/components/SourceSelector";
 import { TracePanel } from "@/components/TracePanel";
+import { DEPTHS, useDepth, type Depth } from "@/lib/depth";
 import { COPY, DIR, LANGUAGES } from "@/lib/i18n";
 import type { PassageTranslation, QueryResult, Reading, UiLanguage } from "@/lib/types";
 
@@ -36,10 +37,22 @@ export default function Home() {
   // audit twelve passages. The evidence view stays one click away.
   const [reading, setReading] = useState<Reading | null>(null);
   const [view, setView] = useState<"read" | "evidence">("read");
+  const [depth, setDepth] = useDepth();
   const runId = useRef(0);
 
   const t = COPY[language];
   const dir = DIR[language];
+
+  const depthName: Record<Depth, string> = {
+    learn: t.depthLearn,
+    read: t.depthRead,
+    audit: t.depthAudit,
+  };
+  const depthHint: Record<Depth, string> = {
+    learn: t.depthLearnHint,
+    read: t.depthReadHint,
+    audit: t.depthAuditHint,
+  };
 
   useEffect(() => {
     document.documentElement.lang = language;
@@ -171,7 +184,7 @@ export default function Home() {
   );
 
   return (
-    <div className="shell">
+    <div className="shell" data-depth={depth}>
       <header className="masthead">
         <div className="wrap masthead-inner">
           <a className="wordmark" href="/">
@@ -180,7 +193,43 @@ export default function Home() {
               تَفَهُّم
             </span>
           </a>
-          <span className="masthead-tagline">{t.tagline}</span>
+
+          <span className="masthead-divider" aria-hidden="true" />
+
+          <div className="depth">
+            <span className="depth-label">{t.depthLabel}</span>
+            <div className="segmented" role="group" aria-label={t.depthLabel}>
+              {DEPTHS.map((d) => (
+                <button
+                  key={d}
+                  type="button"
+                  aria-pressed={depth === d}
+                  onClick={() => setDepth(d)}
+                  title={depthHint[d]}
+                >
+                  {depthName[d]}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <span className="masthead-spacer" />
+
+          <div className="segmented" data-tone="accent" role="group" aria-label={t.language}>
+            {LANGUAGES.map((l) => (
+              <button
+                key={l.code}
+                type="button"
+                aria-pressed={language === l.code}
+                onClick={() => setLanguage(l.code)}
+                lang={l.code}
+              >
+                {l.label}
+              </button>
+            ))}
+          </div>
+
+          <p className="depth-hint">{depthHint[depth]}</p>
         </div>
       </header>
 
@@ -213,23 +262,6 @@ export default function Home() {
               )}
             </button>
           </form>
-
-          <div className="search-meta">
-            <span>{t.language}</span>
-            <div className="lang-switch" role="group" aria-label={t.language}>
-              {LANGUAGES.map((l) => (
-                <button
-                  key={l.code}
-                  type="button"
-                  aria-pressed={language === l.code}
-                  onClick={() => setLanguage(l.code)}
-                  lang={l.code}
-                >
-                  {l.label}
-                </button>
-              ))}
-            </div>
-          </div>
 
           <SourceSelector
             language={language}
@@ -275,7 +307,12 @@ export default function Home() {
         )}
 
         {reading && view === "read" && (
-          <ReadingView reading={reading} language={language} works={sources} />
+          <ReadingView
+            reading={reading}
+            language={language}
+            works={sources}
+            depth={depth}
+          />
         )}
 
         {result && (view === "evidence" || !reading) && (

@@ -29,12 +29,22 @@
   --warn: #8a6d3b;
   --warn-wash: #fdf6e7;
 
+  /* The masthead spine. A dark band gives the page architecture: without it
+     every band is the same paper and the page reads as one undifferentiated
+     sheet, which is what made the old header disappear. */
+  --spine: #14120f;
+  --spine-ink: #f3ece0;
+  --spine-ink-muted: #a29788;
+  --spine-ink-faint: #7d746a;
+  --spine-rule: #34302a;
+
   --radius: 4px;
   --radius-lg: 8px;
 
   --measure: 68ch;
   --gutter: clamp(1.25rem, 4vw, 3rem);
 
+  --font-display: "Instrument Serif", "Spectral", Georgia, serif;
   --font-latin: "Spectral", Georgia, "Times New Roman", serif;
   --font-ui: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
   --font-data: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
@@ -113,19 +123,20 @@ button {
 /* ---------------------------------------------------------------- masthead */
 
 .masthead {
-  border-bottom: 1px solid var(--rule);
-  background: var(--paper);
+  background: var(--spine);
+  color: var(--spine-ink);
   position: sticky;
   top: 0;
   z-index: 20;
-  backdrop-filter: blur(6px);
 }
 
 .masthead-inner {
   display: flex;
-  align-items: baseline;
-  gap: 1rem;
-  padding-block: 1rem;
+  align-items: center;
+  gap: 1.5rem;
+  min-height: 68px;
+  padding-block: 0.6rem;
+  flex-wrap: wrap;
 }
 
 .wordmark {
@@ -137,27 +148,102 @@ button {
 }
 
 .wordmark-latin {
-  font-size: 1.28rem;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 400;
+  letter-spacing: 0.01em;
 }
 
 .wordmark-arabic {
   font-family: var(--font-arabic);
-  font-size: 1.18rem;
-  color: var(--ink-muted);
+  font-size: 1.2rem;
+  color: var(--gold);
 }
 
-.masthead-tagline {
+.masthead-divider {
+  width: 1px;
+  align-self: stretch;
+  margin-block: 0.9rem;
+  background: var(--spine-rule);
+}
+
+.masthead-spacer {
+  flex: 1;
+}
+
+/* ------------------------------------------------------------- depth dial
+   One control that re-tunes the page for who is reading it, rather than
+   asking a reader to declare themselves at the door. */
+
+.depth {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.depth-label {
+  font-family: var(--font-data);
+  font-size: 0.63rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--spine-ink-faint);
+}
+
+.segmented {
+  display: inline-flex;
+  border: 1px solid var(--spine-rule);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.segmented button {
+  border: 0;
+  background: transparent;
+  padding: 0.32rem 0.85rem;
+  font-family: var(--font-data);
+  font-size: 0.72rem;
+  color: var(--spine-ink-muted);
+  transition: background 120ms ease, color 120ms ease;
+  white-space: nowrap;
+}
+
+.segmented button + button {
+  border-inline-start: 1px solid var(--spine-rule);
+}
+
+.segmented button:hover:not([aria-pressed="true"]) {
+  color: var(--spine-ink);
+}
+
+/* Gold marks the active depth, and the language switch uses the accent, so the
+   two controls beside each other never read as one. Gold on interface chrome is
+   the single exception to the gold rule, and it is deliberate: nothing here is
+   text a reader could mistake for revelation. */
+.segmented button[aria-pressed="true"] {
+  background: var(--gold);
+  color: var(--spine);
+  font-weight: 500;
+}
+
+.segmented[data-tone="accent"] button[aria-pressed="true"] {
+  background: var(--accent);
+  color: #fff;
+}
+
+.depth-hint {
+  width: 100%;
   font-family: var(--font-ui);
-  font-size: 0.78rem;
-  color: var(--ink-faint);
-  margin-inline-start: auto;
-  letter-spacing: 0.01em;
+  font-size: 0.74rem;
+  color: var(--spine-ink-faint);
+  margin: 0;
+  padding-bottom: 0.5rem;
 }
 
-@media (max-width: 720px) {
-  .masthead-tagline {
+@media (max-width: 900px) {
+  .depth-label {
+    display: none;
+  }
+  .depth-hint {
     display: none;
   }
 }
@@ -169,12 +255,14 @@ button {
 }
 
 .hero-title {
-  font-size: clamp(2rem, 5vw, 3rem);
-  line-height: 1.12;
-  font-weight: 500;
-  letter-spacing: -0.02em;
+  font-family: var(--font-display);
+  font-size: clamp(2.3rem, 5.5vw, 3.4rem);
+  line-height: 1.08;
+  font-weight: 400;
+  letter-spacing: 0;
   margin: 0 0 0.75rem;
-  max-width: 20ch;
+  max-width: 22ch;
+  text-wrap: pretty;
 }
 
 .hero-sub {
@@ -1498,4 +1586,230 @@ button {
   font-family: var(--font-ui);
   font-size: 0.83rem;
   color: var(--accent-hover);
+}
+
+
+/* ---------------------------------------------------------------- depth
+   The depth dial changes how much apparatus is drawn, never which sources are
+   on the page. Anything that would remove a commentator from view is done in
+   the component, with a visible count, rather than hidden here: silently
+   dropping evidence is the one thing this interface must not do. */
+
+.shell[data-depth="learn"] .ladder,
+.shell[data-depth="learn"] .trace,
+.shell[data-depth="learn"] .synthesis-audit,
+.shell[data-depth="learn"] .clause-meta,
+.shell[data-depth="learn"] .note-actions .chip {
+  display: none;
+}
+
+.shell[data-depth="read"] .trace {
+  display: none;
+}
+
+/* At learning depth the translation is the point, so it leads and the Arabic
+   follows it rather than the other way round. */
+.shell[data-depth="learn"] .note {
+  display: flex;
+  flex-direction: column;
+}
+
+.shell[data-depth="learn"] .note-gist {
+  order: 3;
+  font-size: 1rem;
+  opacity: 0.75;
+}
+
+.shell[data-depth="learn"] .translate-block {
+  order: 2;
+}
+
+.shell[data-depth="learn"] .note-actions {
+  order: 4;
+}
+
+/* Auditing is denser on purpose: someone checking sources is reading a table,
+   not prose, and the extra line-height only pushes rows off the screen. */
+.shell[data-depth="audit"] .note {
+  padding-block: 0.85rem;
+}
+
+.shell[data-depth="audit"] .note-gist {
+  line-height: 1.85;
+}
+
+
+/* ------------------------------------------------------- reading rail
+   The ayah moves out of the scroll and into a rail beside the commentary.
+   Reading a clause-by-clause discussion means constantly checking back
+   against the verse, and when the verse scrolls away that check costs a
+   round trip the reader mostly will not make. */
+
+.reading-layout {
+  display: grid;
+  grid-template-columns: 24rem minmax(0, 1fr);
+  gap: 2.5rem;
+  align-items: start;
+  margin-top: 1.5rem;
+}
+
+.reading-rail {
+  position: sticky;
+  top: 92px;
+  border: 1px solid var(--rule);
+  border-inline-start: 3px solid var(--gold);
+  border-radius: var(--radius);
+  background: var(--gold-wash);
+  padding: 1.4rem 1.5rem;
+  max-height: calc(100vh - 8rem);
+  overflow-y: auto;
+}
+
+.rail-label {
+  font-family: var(--font-data);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 0.8rem;
+}
+
+.rail-ayah {
+  font-family: var(--font-arabic);
+  font-size: 1.45rem;
+  line-height: 2.15;
+  margin: 0;
+}
+
+.rail-translation {
+  margin-top: 1rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid rgba(168, 139, 74, 0.28);
+}
+
+.rail-translation p {
+  margin: 0;
+  font-size: 0.96rem;
+  line-height: 1.72;
+}
+
+.rail-translation p[lang="ur"] {
+  font-size: 1.02rem;
+  line-height: 2.3;
+}
+
+.rail-translator {
+  display: block;
+  font-family: var(--font-data);
+  font-size: 0.68rem;
+  color: var(--gold);
+  margin-top: 0.5rem;
+}
+
+.rail-section {
+  margin-top: 1.8rem;
+}
+
+.rail-heading {
+  font-family: var(--font-data);
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 0.7rem;
+}
+
+/* ------------------------------------------------------ clause navigator */
+
+.clause-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.clause-nav a {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.5rem 0.65rem;
+  border-radius: var(--radius);
+  border-inline-start: 2px solid transparent;
+  text-decoration: none;
+  color: inherit;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.clause-nav a:hover {
+  background: rgba(168, 139, 74, 0.1);
+  border-inline-start-color: var(--gold);
+}
+
+.clause-nav-number {
+  font-family: var(--font-data);
+  font-size: 0.7rem;
+  color: var(--ink-faint);
+  flex: none;
+  width: 1rem;
+}
+
+.clause-nav-text {
+  font-family: var(--font-arabic);
+  font-size: 1.05rem;
+  line-height: 1.9;
+  flex: 1;
+  min-width: 0;
+  color: var(--ink-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.clause-nav-count {
+  font-family: var(--font-data);
+  font-size: 0.66rem;
+  color: var(--ink-faint);
+  flex: none;
+}
+
+.rail-hint {
+  margin: 0.8rem 0 0;
+  font-family: var(--font-ui);
+  font-size: 0.73rem;
+  line-height: 1.55;
+  color: var(--ink-faint);
+}
+
+/* At learning depth some commentators are held back, so the page says how
+   many and offers them, rather than quietly showing fewer. */
+.clause-more {
+  margin-top: 0.2rem;
+  text-align: center;
+}
+
+.clause-more button {
+  border: 1px solid var(--rule-strong);
+  background: var(--paper-raised);
+  border-radius: var(--radius);
+  padding: 0.4rem 1rem;
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  color: var(--accent);
+}
+
+.clause-more button:hover {
+  border-color: var(--accent);
+}
+
+@media (max-width: 1000px) {
+  .reading-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem;
+  }
+  .reading-rail {
+    position: static;
+    max-height: none;
+  }
+  .rail-section {
+    display: none;
+  }
 }

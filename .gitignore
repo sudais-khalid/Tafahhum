@@ -48,3 +48,9 @@ data/quran/*.json
 # OS
 .DS_Store
 Thumbs.db
+
+# TypeScript incremental build cache
+*.tsbuildinfo
+
+# Seeded design canvas: 2.2MB of generated payload, rebuilt from design/*.dc.html
+design/tafahhum-reading-redesign.html

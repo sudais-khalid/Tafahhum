@@ -1,0 +1,39 @@
+{
+  "artboards": [
+    { "file": "Learning.dc.html", "x": 0, "y": 0, "w": 1040, "h": 1400, "title": "Learning depth" },
+    { "file": "Main.dc.html", "x": 1160, "y": 0, "w": 1440, "h": 1620, "title": "Reading depth" },
+    { "file": "Auditing.dc.html", "x": 2720, "y": 0, "w": 1440, "h": 1480, "title": "Auditing depth" },
+    { "file": "UrduPhone.dc.html", "x": 4280, "y": 0, "w": 390, "h": 1220, "title": "Urdu on a phone" }
+  ],
+  "annotations": [
+    {
+      "id": "depth-dial",
+      "x": 0,
+      "y": -250,
+      "w": 620,
+      "text": "The one idea holding this together is the depth dial in the masthead.\n\nLearning: the translation leads, the Arabic sits one tap away, two or three commentators set out the discussion in plain language.\n\nReading: every commentator, clause by clause, original beside translation.\n\nAuditing: adds the retrieval trace, support scores and the provenance ladder down to the scan.\n\nSame page, same data, three densities. Nobody is asked to choose a persona up front. The choice is remembered per reader, and falls back to Reading when nothing is stored."
+    },
+    {
+      "id": "gold-rule",
+      "x": 1160,
+      "y": -250,
+      "w": 560,
+      "text": "Gold stays reserved for Quranic text and nothing else, which is the rule already in globals.css. Commentary, interface and the written summary never borrow it, so revealed text is distinguishable from interpretation at a glance rather than by reading a label.\n\nNew here: the dark masthead spine, Instrument Serif for display, and the ayah moved into a fixed left rail so it stays in view while commentary scrolls."
+    },
+    {
+      "id": "audit-note",
+      "x": 2720,
+      "y": -250,
+      "w": 620,
+      "text": "Auditing is the depth that has to be able to say no.\n\nEvery number here is measured rather than asserted, and the three real gaps are stated on the page instead of being papered over: the dense retrieval arm is not populated, edition licensing reads UNKNOWN for every work, and no citation resolves to a page image because no scans are loaded.\n\nA provenance ladder that stopped short is more useful than one that pretends to reach the scan."
+    },
+    {
+      "id": "rtl-note",
+      "x": 4280,
+      "y": -250,
+      "w": 400,
+      "text": "Urdu is set in Nastaliq at 2.5 line-height, which is the script Urdu readers expect. Naskh is legible but reads as foreign.\n\nEvery machine translation is labelled as such and the Arabic is always reachable."
+    }
+  ],
+  "launch": { "view": "canvas" }
+}

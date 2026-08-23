@@ -14,9 +14,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         {/* Amiri is a Naskh revival drawn from the Bulaq press types, the
             typographic tradition printed Tafsir actually belongs to. Urdu is set
-            in Nastaliq, the script Urdu readers expect. */}
+            in Nastaliq, the script Urdu readers expect.
+
+            Instrument Serif is the display face, used only for headings and the
+            wordmark. It is high-contrast enough to carry a title on its own,
+            which is what lets headings stop competing with Spectral body text. */}
         <link
-          href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Noto+Nastaliq+Urdu:wght@400;600&family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Instrument+Serif:ital@0;1&family=Noto+Nastaliq+Urdu:wght@400;600&family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
           rel="stylesheet"
         />
       </head>

@@ -99,6 +99,19 @@ type Copy = {
   machineTranslation: string;
   translationUnavailable: string;
   translationFailed: string;
+  depthLabel: string;
+  depthLearn: string;
+  depthRead: string;
+  depthAudit: string;
+  depthLearnHint: string;
+  depthReadHint: string;
+  depthAuditHint: string;
+  clausesInVerse: string;
+  clauseNavHint: string;
+  railSources: string;
+  changeSources: string;
+  jumpToClause: (n: number) => string;
+  showMoreCommentators: (n: number) => string;
 };
 
 const en: Copy = {
@@ -225,6 +238,21 @@ const en: Copy = {
   translationUnavailable:
     "No translation backend is configured on the server. The Arabic above is the source and is unaffected.",
   translationFailed: "The translation could not be produced. The Arabic above is unaffected.",
+  depthLabel: "Depth",
+  depthLearn: "Learning",
+  depthRead: "Reading",
+  depthAudit: "Auditing",
+  depthLearnHint: "Translation first, with the commentators who set out the discussion.",
+  depthReadHint: "Every commentator, clause by clause, original beside translation.",
+  depthAuditHint: "Adds how each passage was found, how it was matched, and how far its citation resolves.",
+  clausesInVerse: "Clauses in this verse",
+  clauseNavHint:
+    "Numbers are how many commentators treat that clause. The divisions come from the commentaries themselves.",
+  railSources: "Sources",
+  changeSources: "Change",
+  jumpToClause: (n) => `Go to clause ${n}`,
+  showMoreCommentators: (n) =>
+    `Show ${n} more ${n === 1 ? "commentator" : "commentators"} on this clause`,
 };
 
 const ar: Copy = {
@@ -343,6 +371,19 @@ const ar: Copy = {
   machineTranslation: "ترجمة آلية",
   translationUnavailable: "لا توجد خدمة ترجمة مهيأة على الخادم. والنص العربي أعلاه هو الأصل.",
   translationFailed: "تعذّرت الترجمة. والنص العربي أعلاه لم يتأثر.",
+  depthLabel: "المستوى",
+  depthLearn: "تعلّم",
+  depthRead: "قراءة",
+  depthAudit: "تدقيق",
+  depthLearnHint: "الترجمة أولاً، مع المفسّرين الذين يقيمون أصل المسألة.",
+  depthReadHint: "كل المفسّرين، جملةً جملةً، مع النص الأصلي إلى جانب الترجمة.",
+  depthAuditHint: "يضيف كيف عُثر على كل نص، وكيف رُبط بالجملة، وإلى أي حدّ يصل توثيقه.",
+  clausesInVerse: "جمل هذه الآية",
+  clauseNavHint: "الأرقام تدل على عدد المفسّرين الذين تناولوا الجملة. والتقسيم مأخوذ من التفاسير نفسها.",
+  railSources: "المصادر",
+  changeSources: "تغيير",
+  jumpToClause: (n) => `الانتقال إلى الجملة ${n}`,
+  showMoreCommentators: (n) => `إظهار ${n} من التفاسير الأخرى في هذا المقطع`,
 };
 
 const ur: Copy = {
@@ -465,6 +506,19 @@ const ur: Copy = {
   translationUnavailable:
     "سرور پر ترجمے کی سہولت مہیا نہیں۔ اوپر کا عربی متن اصل ہے اور غیر متاثر ہے۔",
   translationFailed: "ترجمہ نہ ہو سکا۔ اوپر کا عربی متن غیر متاثر ہے۔",
+  depthLabel: "سطح",
+  depthLearn: "سیکھنا",
+  depthRead: "مطالعہ",
+  depthAudit: "جانچ",
+  depthLearnHint: "پہلے ترجمہ، اور وہ مفسرین جو بحث کی بنیاد رکھتے ہیں۔",
+  depthReadHint: "تمام مفسرین، جملہ بہ جملہ، اصل متن ترجمے کے ساتھ۔",
+  depthAuditHint: "بتاتا ہے کہ ہر اقتباس کیسے ملا، کیسے جوڑا گیا، اور اس کا حوالہ کہاں تک پہنچتا ہے۔",
+  clausesInVerse: "اس آیت کے اجزا",
+  clauseNavHint: "اعداد بتاتے ہیں کہ کتنے مفسرین نے اس جزو پر بات کی۔ یہ تقسیم خود تفاسیر سے لی گئی ہے۔",
+  railSources: "مآخذ",
+  changeSources: "تبدیل کریں",
+  jumpToClause: (n) => `جزو ${n} پر جائیں`,
+  showMoreCommentators: (n) => `اس جزو پر ${n} مزید تفاسیر دیکھیں`,
 };
 
 export const COPY: Record<UiLanguage, Copy> = { en, ar, ur };
