@@ -90,10 +90,20 @@ class TestClassificationHonesty:
         assert entry not in sunni_works()
         assert entry.note and "Mu'tazila" in entry.note
 
-    def test_tanwir_al_miqbas_attribution_is_flagged(self):
-        entry = next(e for e in CATALOGUE if e.slug == "tanwir-al-miqbas")
-        assert entry.tradition == "EARLY"
-        assert entry.note and "disputed" in entry.note.lower()
+    def test_tanwir_al_miqbas_is_not_catalogued(self):
+        """The upstream slug serves the wrong work, so it stays out.
+
+        ar-tafseer-tanwir-al-miqbas returns Ibn Ashur's al-Tahrir wa al-Tanwir,
+        not Tanwir al-Miqbas: sampled across five surahs, 70% of ayahs are over
+        90% word-identical to the Ibn Ashur endpoint and the rest differ only in
+        vocalisation. Ingesting it would attribute a work of 1393 AH to Ibn
+        Abbas, d. 68 AH, behind a citation that looks perfectly well-formed.
+
+        This pins the removal. Re-adding the entry should fail here rather than
+        quietly reintroduce a thirteen-century misattribution.
+        """
+        assert not any(e.slug == "tanwir-al-miqbas" for e in CATALOGUE)
+        assert not any(e.source_slug == "ar-tafseer-tanwir-al-miqbas" for e in CATALOGUE)
 
     def test_death_years_are_sparse_not_invented(self):
         """Most works have no death year yet, and that is the honest state."""

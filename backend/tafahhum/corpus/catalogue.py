@@ -336,16 +336,20 @@ CATALOGUE: tuple[CatalogueEntry, ...] = (
         ),
         aliases=("zamakhshari", "زمخشري", "kashshaf"),
     ),
-    CatalogueEntry(
-        "tanwir-al-miqbas", "ar-tafseer-tanwir-al-miqbas",
-        "تنوير المقباس من تفسير ابن عباس", "Tanwir al-Miqbas",
-        "منسوب إلى ابن عباس", "Attributed to Ibn Abbas",
-        None, "EARLY", "BI_AL_MATHUR", rank=5,
-        note=(
-            "Attribution to Ibn Abbas is disputed. The classification reference "
-            "lists it under early tafsir rather than a school."
-        ),
-    ),
+    # Tanwir al-Miqbas is deliberately absent.
+    #
+    # The upstream endpoint ar-tafseer-tanwir-al-miqbas does not serve Tanwir
+    # al-Miqbas. It serves Ibn Ashur's al-Tahrir wa al-Tanwir, the same text
+    # already catalogued under ibn-ashur-al-tahrir-wa-al-tanwir: across surahs
+    # 2, 18, 36, 55 and 112, 70% of ayahs are over 90% word-identical, and the
+    # remainder differ only in vocalisation. The two slugs share the word
+    # "tanwir", which is the likely origin of the mix-up upstream.
+    #
+    # Ingesting it would attribute Ibn Ashur (d. 1393 AH) to Ibn Abbas
+    # (d. 68 AH), a gap of thirteen centuries, and would do so with a citation
+    # that looks entirely well-formed. Nothing downstream could catch that,
+    # because every other check this system runs would pass. It stays out until
+    # a source is found that serves the actual work.
 
     # ---- linguistic and qira'at apparatus ---------------------------------
     # Catalogued separately: these are tools for reading the Quran rather than
