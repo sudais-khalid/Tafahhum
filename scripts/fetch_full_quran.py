@@ -59,6 +59,24 @@ def cache_path(source_slug: str, surah: int) -> Path:
     return CACHE / source_slug / f"{surah}.json"
 
 
+def read_records(path: Path) -> list[dict]:
+    """The cached records for one surah, whichever shape the source used.
+
+    Most works come back as a bare list of ayah records. One,
+    ar-tafseer-tanwir-al-miqbas, wraps them as {"ayahs": [...]}, and iterating
+    that dict yields the string key rather than a record, which took the whole
+    ingest down with an AttributeError partway through. Both shapes are
+    accepted here, and anything else yields nothing rather than a crash: one
+    malformed work must not cost the other forty-nine.
+    """
+    data = json.loads(path.read_text(encoding="utf-8"))
+    if isinstance(data, dict):
+        data = data.get("ayahs") or data.get("data") or []
+    if not isinstance(data, list):
+        return []
+    return [r for r in data if isinstance(r, dict)]
+
+
 # ---------------------------------------------------------------------------
 # Phase 1 — download
 # ---------------------------------------------------------------------------
@@ -156,7 +174,7 @@ def ingest_work(conn: psycopg.Connection, entry) -> tuple[int, int]:
         if not path.exists():
             continue
         try:
-            records = json.loads(path.read_text(encoding="utf-8"))
+            records = read_records(path)
         except json.JSONDecodeError:
             continue
         if not records:
