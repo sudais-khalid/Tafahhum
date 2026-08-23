@@ -52,6 +52,17 @@ DEFAULT_MODEL_DIR = Path(
 #: NLLB's positional limit is 512 tokens; well under it keeps quality stable.
 MAX_SENTENCE_CHARS = 400
 
+#: How many sentences go through the model at once. Also the failure blast
+#: radius: a chunk that raises is retried sentence by sentence.
+CHUNK_PIECES = 16
+
+#: Beam width. Four was the default and roughly doubles decode time over two
+#: for a difference that does not survive contact with classical Arabic, where
+#: the register is the limiting factor rather than the search. Two is the
+#: better trade on CPU; raise it with TAFAHHUM_NLLB_BEAM if a passage matters
+#: more than the wait.
+BEAM_SIZE = max(1, int(os.environ.get("TAFAHHUM_NLLB_BEAM", "2")))
+
 _SENTENCE_END = re.compile(r"(?<=[.؟!۔:])\s+")
 
 
@@ -173,39 +184,27 @@ class NllbTranslator:
                 note="Nothing to translate.",
             )
 
-        sp = loaded.tokenizer
-        # The source language tag prefixes the sequence; the target tag is what
-        # the decoder is forced to start with.
-        batch = [[src, *sp.encode(p, out_type=str), "</s>"] for p in pieces]
-        prefixes = [[tgt]] * len(batch)
+        rendered, failed = self._translate_pieces(loaded, pieces, src, tgt)
 
-        try:
-            results = loaded.translator.translate_batch(
-                batch,
-                target_prefix=prefixes,
-                beam_size=4,
-                max_batch_size=8,
-                # Long enough for a full sentence, bounded so a degenerate
-                # decode cannot run away.
-                max_decoding_length=256,
-                repetition_penalty=1.1,
-            )
-        except Exception as exc:
+        if not rendered:
             return Translation(
                 text="", language=target, translator_kind="MACHINE",
                 translator_name=self.name, model_name=self.name,
                 verification_status=VerificationStatus.UNVERIFIED,
-                note=f"Translation failed: {exc}",
+                note="No part of this passage could be translated.",
             )
 
-        out: list[str] = []
-        for r in results:
-            tokens = list(r.hypotheses[0])
-            if tokens and tokens[0] == tgt:
-                tokens = tokens[1:]
-            out.append(sp.decode(tokens))
-
-        rendered = " ".join(s for s in (t.strip() for t in out) if s)
+        note = (
+            "Machine translation by a dedicated translation model. The "
+            "Arabic beside it is the source; cite that, not this."
+        )
+        if failed:
+            # Saying which part is missing beats presenting a shortened
+            # translation as though it were the whole passage.
+            note += (
+                f" {failed} of {len(pieces)} sentences could not be translated "
+                f"and are omitted here; they are present in the Arabic."
+            )
 
         return Translation(
             text=rendered,
@@ -214,8 +213,76 @@ class NllbTranslator:
             translator_name=self.name,
             model_name=f"{self.name} ({self.compute_type})",
             verification_status=VerificationStatus.MACHINE_PROPOSED,
-            note=(
-                "Machine translation by a dedicated translation model. The "
-                "Arabic beside it is the source; cite that, not this."
-            ),
+            note=note,
         )
+
+    # -- decoding ----------------------------------------------------------
+
+    def _translate_pieces(
+        self, loaded: _Loaded, pieces: list[str], src: str, tgt: str
+    ) -> tuple[str, int]:
+        """Translate the pieces, losing at most one sentence to any one failure.
+
+        The passage is split into sentences precisely so that one hard sentence
+        cannot spoil the rest, but a single `translate_batch` call over every
+        piece threw that away: one bad sequence raised, and the whole passage
+        came back empty. That is what made translation look unreliable on some
+        passages and fine on others.
+
+        So the pieces go through in chunks, and a chunk that raises is retried
+        one sentence at a time to isolate the offender. Whatever translates is
+        kept, and the caller is told how much was not.
+        """
+        out: list[str] = []
+        failed = 0
+
+        for start in range(0, len(pieces), CHUNK_PIECES):
+            chunk = pieces[start : start + CHUNK_PIECES]
+            try:
+                out.extend(self._decode(loaded, chunk, src, tgt))
+                continue
+            except Exception:
+                pass
+
+            # The chunk failed as a unit. Retry each sentence alone so the
+            # damage is bounded to the sentence that actually caused it.
+            for piece in chunk:
+                try:
+                    out.extend(self._decode(loaded, [piece], src, tgt))
+                except Exception:
+                    failed += 1
+
+        rendered = " ".join(s for s in (t.strip() for t in out) if s)
+        return rendered, failed
+
+    def _decode(
+        self, loaded: _Loaded, pieces: list[str], src: str, tgt: str
+    ) -> list[str]:
+        """One batch through the model, returned as plain strings."""
+        sp = loaded.tokenizer
+        # The source language tag prefixes the sequence; the target tag is what
+        # the decoder is forced to start with.
+        batch = [[src, *sp.encode(p, out_type=str), "</s>"] for p in pieces]
+
+        results = loaded.translator.translate_batch(
+            batch,
+            target_prefix=[[tgt]] * len(batch),
+            beam_size=BEAM_SIZE,
+            max_batch_size=CHUNK_PIECES,
+            # Long enough for a full sentence, bounded so a degenerate
+            # decode cannot run away.
+            max_decoding_length=256,
+            repetition_penalty=1.1,
+            # A repetition penalty discourages loops; this forbids them
+            # outright, which is what actually stopped the Urdu decoder
+            # emitting the same clause until it hit the length cap.
+            no_repeat_ngram_size=4,
+        )
+
+        out: list[str] = []
+        for r in results:
+            tokens = list(r.hypotheses[0])
+            if tokens and tokens[0] == tgt:
+                tokens = tokens[1:]
+            out.append(sp.decode(tokens))
+        return out

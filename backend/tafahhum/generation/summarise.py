@@ -80,6 +80,8 @@ are not a commentator and you do not issue rulings.
 
 You are given numbered passages. They are your only source.
 
+Your reader has never studied Tafsir. Write so that they understand.
+
 OUTPUT FORMAT — follow exactly:
 Write 4 to 8 lines. One sentence per line. End every line with the number of the passage it \
 came from, in square brackets.
@@ -89,10 +91,17 @@ Example of the required shape:
 <one sentence in Arabic> [2]
 <one sentence in Arabic> [1][3]
 
+The lines are split for checking, but they must read as one connected paragraph when joined. \
+Each line should follow on from the one before it, as prose does. Do not write a list of \
+disconnected statements.
+
 Rules:
 - Write in Arabic.
 - A line with no [number] is discarded, so never omit it.
 - Do not copy a passage word for word. State in your own words what it says.
+- Write plainly. Where a passage uses a technical term, say what it means in ordinary words \
+rather than repeating the term and leaving the reader behind.
+- Prefer the everyday word to the scholarly one wherever both are accurate.
 - Use only what the numbered passages say. Add no background, history, or outside knowledge, \
 however familiar.
 - Where passages disagree, give each position on its own line and attribute it. Do not choose \
@@ -100,6 +109,30 @@ between them and do not call a disputed reading settled.
 - No legal rulings, and no telling the reader what to believe or do.
 
 Output only those lines. No heading, no preamble, no closing remark."""
+
+
+#: Rendering the verified Arabic into the reader's language.
+#:
+#: This runs on text that has already survived verification, which is what makes
+#: it safe to hand to a capable model: every sentence it receives was measured
+#: against the passage it cites and kept. The model's job here is language, not
+#: content, and it is told so in the plainest terms available.
+_RENDER_SYSTEM = """You are given a short passage of Arabic that summarises what Quranic \
+commentators said about one verse, with bracketed numbers marking which source each sentence \
+came from.
+
+Render it into {language} as one flowing paragraph that an ordinary reader can follow.
+
+Rules:
+- Translate meaning, not words. The Arabic is scholarly; your {language} must be plain and \
+readable.
+- Keep every bracketed number exactly where it is, attached to the same statement.
+- Add nothing. No explanation, no context, no detail that is not in the Arabic.
+- Remove nothing. Every statement in the Arabic must appear.
+- Do not soften a disagreement into agreement, and do not present a disputed reading as settled.
+- Write it as connected prose, not as a list.
+
+Output only the paragraph."""
 
 
 @dataclass
@@ -387,13 +420,15 @@ def summarise(
     )
 
 
-def _generate(translator, prompt: str) -> str:
+def _generate(translator, prompt: str, *, system: str | None = None) -> str:
     """Run the prompt through whichever backend is installed.
 
     Both backends expose a chat-style call under different names, so this bridges
     them rather than forcing the translator protocol to grow a second method.
     """
     import httpx
+
+    system = system or _SYSTEM
 
     # Local model.
     if getattr(translator, "name", "") == "ollama":
@@ -402,7 +437,7 @@ def _generate(translator, prompt: str) -> str:
                 f"{translator.host}/api/generate",
                 json={
                     "model": translator.model,
-                    "system": _SYSTEM,
+                    "system": system,
                     "prompt": prompt,
                     "stream": False,
                     "options": {"temperature": 0.2, "repeat_penalty": 1.1,
@@ -420,7 +455,7 @@ def _generate(translator, prompt: str) -> str:
         message = translator.client.messages.create(
             model=translator.model,
             max_tokens=2000,
-            system=[{"type": "text", "text": _SYSTEM,
+            system=[{"type": "text", "text": system,
                      "cache_control": {"type": "ephemeral"}}],
             messages=[{"role": "user", "content": prompt}],
         )
@@ -436,16 +471,92 @@ def status_for(result: SummaryResult) -> VerificationStatus:
     return VerificationStatus.MACHINE_PROPOSED
 
 
+#: What each language is called in the rendering instruction.
+_LANGUAGE_NAMES = {
+    Language.EN: "English",
+    Language.UR: "Urdu",
+    Language.AR: "Arabic",
+    Language.FA: "Persian",
+    Language.TR: "Turkish",
+}
+
+
+def render_paragraph(summary_ar: str, target: Language, generator=None) -> str | None:
+    """Render the verified Arabic as a paragraph, using the generating model.
+
+    A sentence-level NMT model is the right tool for a source passage, where the
+    job is to carry one sentence across faithfully and nothing else. It is the
+    wrong tool here. Asked to translate a summary it renders each sentence in
+    isolation, so the result arrives as disconnected fragments, and its register
+    is modern news Arabic: `يعني تعالى ذكره` comes back as "I mean, come on".
+
+    This is safe to give to a capable model precisely because it runs after
+    verification. Every sentence it sees was measured against the passage it
+    cites and survived; nothing here decides what is true, only how it reads.
+    Returns None when no such model is configured, and the caller falls back.
+    """
+    if not summary_ar.strip():
+        return None
+
+    if generator is None:
+        from tafahhum.language.translate import get_generator
+
+        generator = get_generator()
+    if generator is None or not generator.available():
+        return None
+
+    system = _RENDER_SYSTEM.format(
+        language=_LANGUAGE_NAMES.get(target, target.value)
+    )
+    rendered = _generate(generator, summary_ar, system=system)
+    if not rendered.strip():
+        return None
+
+    return _sanitise_markers(rendered.strip(), summary_ar)
+
+
+def _sanitise_markers(rendered: str, source_ar: str) -> str:
+    """Remove citation markers the rendering invented.
+
+    Observed on the local model: given Arabic carrying [1] and [2], it produced
+    a clean paragraph ending "[2] [3]". There is no passage 3. The instruction
+    not to add anything held for the prose and failed for the numbers, which is
+    the more dangerous half, because a fabricated marker points a reader at a
+    source that does not say what they are reading.
+
+    So the rendering may only use markers that survived verification. Anything
+    else is deleted rather than trusted: the paragraph is a reading aid, and the
+    verified Arabic beside it remains the record.
+    """
+    allowed = {int(n) for n in _CITATION.findall(source_ar)}
+
+    def keep(match: re.Match[str]) -> str:
+        return match.group(0) if int(match.group(1)) in allowed else ""
+
+    cleaned = _CITATION.sub(keep, rendered)
+    # Deleting a marker can strand the spacing around it.
+    cleaned = re.sub(r"\s+([.,;:؛،])", r"\1", cleaned)
+    return re.sub(r"\s{2,}", " ", cleaned).strip()
+
+
 def translate_summary(summary_ar: str, target: Language, translator=None) -> str | None:
-    """Render the verified Arabic summary into the reader's language.
+    """Put the verified Arabic summary into the reader's language.
 
     Translation happens after verification, never before: the citation markers
     are preserved so a reader can still follow each sentence back to its passage.
+
+    The generating model is tried first because it produces a paragraph rather
+    than a row of separately-translated sentences. NLLB remains the fallback,
+    since a stilted translation is still far better than none.
     """
     if target is Language.AR or not summary_ar.strip():
         return summary_ar
 
     if translator is None:
+        paragraph = render_paragraph(summary_ar, target)
+        if paragraph:
+            return paragraph
+
         from tafahhum.language.translate import get_translator
 
         translator = get_translator()
