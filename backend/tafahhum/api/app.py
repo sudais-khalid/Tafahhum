@@ -9,6 +9,7 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 
+from tafahhum.api.ratelimit import rate_limit_middleware
 from tafahhum.api.reading import build_reading
 from tafahhum.api.schemas import QueryIn, QueryOut, serialise
 from tafahhum.core.config import get_settings
@@ -43,6 +44,10 @@ app.add_middleware(
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
+
+# Registered after CORS so that a refusal still carries CORS headers: a browser
+# that cannot read the 429 shows a network error instead of the retry message.
+app.middleware("http")(rate_limit_middleware)
 
 API = "/api/v1"
 
