@@ -1869,3 +1869,266 @@ button {
   line-height: 1.7;
   color: #6f5729;
 }
+
+
+/* ---------------------------------------------------------------- guide
+   The "How it works" page. Set narrower than the app and with more air:
+   it is read start to finish, unlike the reading page, which is scanned. */
+
+.guide {
+  max-width: 800px;
+  padding-block: 2.5rem 4rem;
+}
+
+.guide-back {
+  display: inline-block;
+  font-family: var(--font-data);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 1.75rem;
+}
+
+.guide-title {
+  font-family: var(--font-display);
+  font-size: clamp(2.2rem, 5.5vw, 3.1rem);
+  font-weight: 400;
+  line-height: 1.1;
+  margin: 0 0 1rem;
+  text-wrap: pretty;
+}
+
+.guide-standfirst {
+  font-size: 1.12rem;
+  line-height: 1.75;
+  color: var(--ink-muted);
+  margin: 0 0 1rem;
+}
+
+.guide-section {
+  margin-top: 3rem;
+}
+
+.guide-h2 {
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  font-weight: 400;
+  margin: 0 0 0.6rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.guide-note {
+  font-family: var(--font-ui);
+  font-size: 0.86rem;
+  line-height: 1.65;
+  color: var(--ink-faint);
+  margin: 0 0 1.25rem;
+}
+
+.guide-p {
+  line-height: 1.8;
+  margin: 0 0 1rem;
+}
+
+/* ------------------------------------------------------------- the chain */
+
+.chain {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.9rem;
+}
+
+.chain-step {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
+  background: var(--paper-raised);
+  padding: 1.1rem 1.25rem;
+}
+
+.chain-number {
+  flex: none;
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 50%;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-family: var(--font-data);
+  font-size: 0.82rem;
+  display: grid;
+  place-items: center;
+}
+
+.chain-body {
+  min-width: 0;
+}
+
+.chain-label {
+  font-family: var(--font-data);
+  font-size: 0.72rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0.3rem 0 0.35rem;
+}
+
+.chain-detail {
+  margin: 0;
+  font-size: 0.96rem;
+  line-height: 1.72;
+}
+
+/* ---------------------------------------------------------- control list */
+
+.controls {
+  margin: 1.5rem 0 0;
+  display: grid;
+  gap: 0;
+}
+
+.control {
+  padding: 1.1rem 0;
+  border-top: 1px solid var(--rule);
+}
+
+.control dt {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem 0.85rem;
+  margin-bottom: 0.4rem;
+}
+
+.control-name {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+/* Where to find it, set apart so the name reads as the label and this as the
+   location rather than the two running together. */
+.control-where {
+  font-family: var(--font-data);
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  padding: 0.1rem 0.6rem;
+}
+
+.control dd {
+  margin: 0;
+  font-size: 0.96rem;
+  line-height: 1.72;
+  color: var(--ink-muted);
+}
+
+/* ------------------------------------------------------------ never list */
+
+.never-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.never-list li {
+  position: relative;
+  padding-inline-start: 1.6rem;
+  font-size: 0.98rem;
+  line-height: 1.7;
+}
+
+.never-list li::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0.35rem;
+  top: 0.72em;
+  width: 0.55rem;
+  height: 1.5px;
+  background: var(--accent);
+}
+
+/* ------------------------------------------------------------- gap cards */
+
+.gap-list {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.gap {
+  border: 1px solid #e0d0a8;
+  border-inline-start: 3px solid var(--warn);
+  border-radius: var(--radius);
+  background: var(--warn-wash);
+  padding: 1rem 1.2rem;
+}
+
+.gap-name {
+  font-family: var(--font-data);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--warn);
+  margin: 0 0 0.4rem;
+}
+
+.gap-detail {
+  margin: 0;
+  font-size: 0.94rem;
+  line-height: 1.7;
+  color: #6f5729;
+}
+
+/* ------------------------------------------------------------ check list */
+
+.guide-check {
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-lg);
+  background: var(--accent-wash);
+  padding: 1.5rem 1.75rem 1.75rem;
+}
+
+.guide-check .guide-h2 {
+  border-bottom-color: rgba(47, 93, 98, 0.3);
+}
+
+.check-list {
+  margin: 0;
+  padding-inline-start: 1.3rem;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.check-list li {
+  font-size: 0.98rem;
+  line-height: 1.72;
+}
+
+/* The guide is prose, so it keeps its measure at every depth. */
+.shell[data-depth="audit"] .guide,
+.shell[data-depth="learn"] .guide {
+  max-width: 800px;
+}
+
+.masthead-link {
+  font-family: var(--font-data);
+  font-size: 0.72rem;
+  color: var(--spine-ink-muted);
+  text-decoration: none;
+  border-bottom: 1px solid var(--spine-rule);
+  padding-bottom: 2px;
+  white-space: nowrap;
+}
+
+.masthead-link:hover {
+  color: var(--spine-ink);
+  border-bottom-color: var(--gold);
+}

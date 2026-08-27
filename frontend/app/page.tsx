@@ -215,6 +215,10 @@ export default function Home() {
 
           <span className="masthead-spacer" />
 
+          <a className="masthead-link" href="/how-it-works">
+            {t.howItWorks}
+          </a>
+
           <div className="segmented" data-tone="accent" role="group" aria-label={t.language}>
             {LANGUAGES.map((l) => (
               <button

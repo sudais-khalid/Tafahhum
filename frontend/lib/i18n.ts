@@ -122,6 +122,7 @@ type Copy = {
   auditGapsBody: string;
   showArabic: string;
   hideArabic: string;
+  howItWorks: string;
 };
 
 const en: Copy = {
@@ -278,6 +279,7 @@ const en: Copy = {
   auditGapsBody:
     "Dense retrieval is not populated, so ranking rests on the structural and sparse arms only. Edition licensing is UNKNOWN for every work. No edition has page images loaded, so no citation resolves to a scan.",
   showArabic: "Show the Arabic",
+  howItWorks: "How it works",
   hideArabic: "Hide the Arabic",
 };
 
@@ -425,6 +427,7 @@ const ar: Copy = {
   auditGapsBody:
     "البحث الدلالي غير مفعّل، فالترتيب يعتمد على البنية والمطابقة اللفظية فقط. وحالة الحقوق لكل طبعة غير معروفة. ولا توجد صور للصفحات، فلا يصل أي توثيق إلى المصوّرة.",
   showArabic: "إظهار النص العربي",
+  howItWorks: "كيف يعمل",
   hideArabic: "إخفاء النص العربي",
 };
 
@@ -576,6 +579,7 @@ const ur: Copy = {
   auditGapsBody:
     "معنوی تلاش فعال نہیں، اس لیے ترتیب صرف ساختی اور لفظی بنیاد پر ہے۔ ہر کتاب کے حقوق کی حیثیت نامعلوم ہے۔ کسی طبع کے صفحات کی تصاویر موجود نہیں، اس لیے کوئی حوالہ اصل صفحے تک نہیں پہنچتا۔",
   showArabic: "عربی متن دکھائیں",
+  howItWorks: "یہ کیسے کام کرتا ہے",
   hideArabic: "عربی متن چھپائیں",
 };
 
