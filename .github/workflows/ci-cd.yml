@@ -165,6 +165,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Oracle Cloud's Always Free shape is Ampere ARM64, so an amd64-only
+      # image will not start there. QEMU lets one runner emit both.
+      - uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
       - uses: docker/setup-buildx-action@v3
 
       - name: Log in to the registry
@@ -189,6 +195,7 @@ jobs:
         with:
           context: ${{ matrix.context }}
           push: true
+          platforms: linux/amd64,linux/arm64
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
