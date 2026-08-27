@@ -1591,41 +1591,25 @@ button {
 
 /* ---------------------------------------------------------------- depth
    The depth dial changes how much apparatus is drawn, never which sources are
-   on the page. Anything that would remove a commentator from view is done in
-   the component, with a visible count, rather than hidden here: silently
-   dropping evidence is the one thing this interface must not do. */
+   on the page.
 
-.shell[data-depth="learn"] .ladder,
+   Only presentation lives here. Anything that changes what is rendered, or
+   that needs to state a count, is decided in the component: hiding a
+   commentator with a display rule would leave no honest way to say how many
+   were held back, and reordering a card in CSS puts the DOM order and the
+   visual order permanently out of step for anyone using a screen reader. */
+
 .shell[data-depth="learn"] .trace,
 .shell[data-depth="learn"] .synthesis-audit,
-.shell[data-depth="learn"] .clause-meta,
-.shell[data-depth="learn"] .note-actions .chip {
-  display: none;
-}
-
 .shell[data-depth="read"] .trace {
   display: none;
 }
 
-/* At learning depth the translation is the point, so it leads and the Arabic
-   follows it rather than the other way round. */
-.shell[data-depth="learn"] .note {
-  display: flex;
-  flex-direction: column;
-}
-
+/* At learning depth the Arabic, when a reader opens it, is context rather than
+   the main text, so it steps back instead of dominating the card. */
 .shell[data-depth="learn"] .note-gist {
-  order: 3;
   font-size: 1rem;
-  opacity: 0.75;
-}
-
-.shell[data-depth="learn"] .translate-block {
-  order: 2;
-}
-
-.shell[data-depth="learn"] .note-actions {
-  order: 4;
+  color: var(--ink-muted);
 }
 
 /* Auditing is denser on purpose: someone checking sources is reading a table,
@@ -1637,7 +1621,6 @@ button {
 .shell[data-depth="audit"] .note-gist {
   line-height: 1.85;
 }
-
 
 /* ------------------------------------------------------- reading rail
    The ayah moves out of the scroll and into a rail beside the commentary.
@@ -1812,4 +1795,77 @@ button {
   .rail-section {
     display: none;
   }
+}
+
+
+/* ------------------------------------------------------------- apparatus
+   The auditing depth's per-passage record. Set in mono and ruled off from the
+   commentary above it, so it reads as measurement about the passage rather
+   than as more of the passage. */
+
+.apparatus {
+  margin-top: 0.9rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--rule);
+}
+
+.apparatus-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.7rem 1.1rem;
+  margin: 0.75rem 0 0;
+}
+
+.apparatus-grid dt {
+  font-family: var(--font-data);
+  font-size: 0.61rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.apparatus-grid dd {
+  margin: 0.15rem 0 0;
+  font-family: var(--font-data);
+  font-size: 0.8rem;
+  color: var(--ink);
+}
+
+.apparatus-grid dd[data-tone="warn"] {
+  color: var(--warn);
+}
+
+.apparatus-citation {
+  margin: 0.75rem 0 0;
+  font-family: var(--font-data);
+  font-size: 0.72rem;
+  line-height: 1.55;
+  color: var(--ink-muted);
+}
+
+/* ------------------------------------------------------------------ gaps */
+
+.gaps {
+  border: 1px solid #e0d0a8;
+  border-inline-start: 3px solid var(--warn);
+  border-radius: var(--radius);
+  background: var(--warn-wash);
+  padding: 1rem 1.2rem;
+  margin-block: 1.5rem;
+}
+
+.gaps-label {
+  font-family: var(--font-data);
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--warn);
+  margin-bottom: 0.5rem;
+}
+
+.gaps-body {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.7;
+  color: #6f5729;
 }

@@ -195,6 +195,11 @@ export interface ReadingNote {
   alignment_basis: string;
   alignment_confidence: number;
   citation: string;
+  /** How many passages this work has on the clause, of which this is one. */
+  available_from_work: number;
+  volume: number | null;
+  page_start: number | null;
+  resolves_to_page: boolean;
 }
 
 export interface ReadingPhrase {

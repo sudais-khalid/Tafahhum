@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { COPY } from "@/lib/i18n";
 import type { Depth } from "@/lib/depth";
+import { NoteApparatus } from "./NoteApparatus";
 import { SummaryPanel } from "./SummaryPanel";
 import { TranslateButton } from "./TranslateButton";
 import type { Reading, ReadingNote, ReadingPhrase, UiLanguage } from "@/lib/types";
@@ -23,10 +24,25 @@ import type { Reading, ReadingNote, ReadingPhrase, UiLanguage } from "@/lib/type
  *  click away and counted on the button, never dropped. */
 const LEARN_VISIBLE = 2;
 
-function Note({ note, language }: { note: ReadingNote; language: UiLanguage }) {
+function Note({
+  note,
+  language,
+  depth,
+}: {
+  note: ReadingNote;
+  language: UiLanguage;
+  depth: Depth;
+}) {
   const t = COPY[language];
   const [expanded, setExpanded] = useState(false);
   const inferred = note.alignment_basis === "OVERLAP";
+
+  // At learning depth the Arabic is folded away behind a control rather than
+  // leading the card. It is never removed: a reader who wants the source is one
+  // click from it, and an Arabic reader never reaches this branch at all.
+  const learning = depth === "learn" && language !== "ar";
+  const [arabicOpen, setArabicOpen] = useState(false);
+  const showArabic = !learning || arabicOpen;
 
   return (
     <article className="note">
@@ -41,24 +57,19 @@ function Note({ note, language }: { note: ReadingNote; language: UiLanguage }) {
       </header>
 
       {/* The commentator's own words, always present and never replaced. */}
-      <p className="note-gist" lang="ar" dir="rtl">
-        {expanded ? note.text : (note.gist ?? note.text.slice(0, 220))}
-      </p>
-
-      <div className="note-actions">
-        <button type="button" onClick={() => setExpanded(!expanded)}>
-          {expanded ? t.showLess : t.showFullArabic}
-        </button>
-        {inferred && (
-          <span className="chip" data-tone="warn">
-            {t.matchedByOverlap}
-          </span>
-        )}
-      </div>
+      {showArabic && (
+        <p className="note-gist" lang="ar" dir="rtl">
+          {expanded ? note.text : (note.gist ?? note.text.slice(0, 220))}
+        </p>
+      )}
 
       <TranslateButton
         passageId={note.passage_id}
         language={language}
+        // Learning depth is the translation, so it opens without being asked.
+        // At the other depths the Arabic is already the point, and translating
+        // a dozen passages nobody asked about costs a dozen model calls.
+        autoOpen={learning}
         initial={
           note.translation
             ? {
@@ -74,7 +85,26 @@ function Note({ note, language }: { note: ReadingNote; language: UiLanguage }) {
         }
       />
 
-      {expanded && (
+      <div className="note-actions">
+        {learning ? (
+          <button type="button" onClick={() => setArabicOpen(!arabicOpen)}>
+            {arabicOpen ? t.hideArabic : t.showArabic}
+          </button>
+        ) : (
+          <button type="button" onClick={() => setExpanded(!expanded)}>
+            {expanded ? t.showLess : t.showFullArabic}
+          </button>
+        )}
+        {inferred && depth !== "learn" && (
+          <span className="chip" data-tone="warn">
+            {t.matchedByOverlap}
+          </span>
+        )}
+      </div>
+
+      {depth === "audit" && <NoteApparatus note={note} language={language} />}
+
+      {expanded && depth !== "audit" && (
         <div className="note-full reveal">
           <p className="note-citation">{note.citation}</p>
           {note.translator_name && (
@@ -112,7 +142,7 @@ function ClauseNotes({
     <>
       <div className="clause-notes">
         {shown.map((n) => (
-          <Note key={n.passage_id} note={n} language={language} />
+          <Note key={n.passage_id} note={n} language={language} depth={depth} />
         ))}
       </div>
       {capped && (
@@ -213,6 +243,15 @@ export function ReadingView({
 
           <p className="method-note">{reading.method_note}</p>
 
+          {/* Auditing depth states the corpus-wide limits rather than leaving a
+              reader to infer them from a ladder that never reaches its end. */}
+          {depth === "audit" && (
+            <section className="gaps">
+              <div className="gaps-label">{t.auditGaps}</div>
+              <p className="gaps-body">{t.auditGapsBody}</p>
+            </section>
+          )}
+
           <ol className="clauses">
             {reading.phrases.map((phrase, i) => (
               <li
@@ -254,7 +293,7 @@ export function ReadingView({
               <p className="method-note">{reading.further_discussion.explanation}</p>
               <div className="clause-notes">
                 {reading.further_discussion.notes.map((n) => (
-                  <Note key={n.passage_id} note={n} language={language} />
+                  <Note key={n.passage_id} note={n} language={language} depth={depth} />
                 ))}
               </div>
             </section>

@@ -112,6 +112,16 @@ type Copy = {
   changeSources: string;
   jumpToClause: (n: number) => string;
   showMoreCommentators: (n: number) => string;
+  auditBasis: string;
+  auditConfidence: string;
+  auditShowing: string;
+  auditAllShown: string;
+  auditHeldBack: (n: number) => string;
+  basisName: (key: string) => string;
+  auditGaps: string;
+  auditGapsBody: string;
+  showArabic: string;
+  hideArabic: string;
 };
 
 const en: Copy = {
@@ -253,6 +263,22 @@ const en: Copy = {
   jumpToClause: (n) => `Go to clause ${n}`,
   showMoreCommentators: (n) =>
     `Show ${n} more ${n === 1 ? "commentator" : "commentators"} on this clause`,
+  auditBasis: "Attached by",
+  auditConfidence: "Confidence",
+  auditShowing: "From this work",
+  auditAllShown: "all shown",
+  auditHeldBack: (n) => `${n} more not shown`,
+  basisName: (k) =>
+    ({
+      QUOTED: "bracketed the clause",
+      OVERLAP: "word overlap only",
+      UNALIGNED: "not attached to a clause",
+    })[k] ?? k,
+  auditGaps: "Known gaps on this page",
+  auditGapsBody:
+    "Dense retrieval is not populated, so ranking rests on the structural and sparse arms only. Edition licensing is UNKNOWN for every work. No edition has page images loaded, so no citation resolves to a scan.",
+  showArabic: "Show the Arabic",
+  hideArabic: "Hide the Arabic",
 };
 
 const ar: Copy = {
@@ -384,6 +410,22 @@ const ar: Copy = {
   changeSources: "تغيير",
   jumpToClause: (n) => `الانتقال إلى الجملة ${n}`,
   showMoreCommentators: (n) => `إظهار ${n} من التفاسير الأخرى في هذا المقطع`,
+  auditBasis: "أُلحق بـ",
+  auditConfidence: "درجة الثقة",
+  auditShowing: "من هذا الكتاب",
+  auditAllShown: "الكل معروض",
+  auditHeldBack: (n) => `${n} غير معروضة`,
+  basisName: (k) =>
+    ({
+      QUOTED: "وضع المقطع بين قوسين",
+      OVERLAP: "تشابه لفظي فقط",
+      UNALIGNED: "غير ملحق بمقطع",
+    })[k] ?? k,
+  auditGaps: "ثغرات معلومة في هذه الصفحة",
+  auditGapsBody:
+    "البحث الدلالي غير مفعّل، فالترتيب يعتمد على البنية والمطابقة اللفظية فقط. وحالة الحقوق لكل طبعة غير معروفة. ولا توجد صور للصفحات، فلا يصل أي توثيق إلى المصوّرة.",
+  showArabic: "إظهار النص العربي",
+  hideArabic: "إخفاء النص العربي",
 };
 
 const ur: Copy = {
@@ -519,6 +561,22 @@ const ur: Copy = {
   changeSources: "تبدیل کریں",
   jumpToClause: (n) => `جزو ${n} پر جائیں`,
   showMoreCommentators: (n) => `اس جزو پر ${n} مزید تفاسیر دیکھیں`,
+  auditBasis: "منسلک بذریعہ",
+  auditConfidence: "درجہ اعتماد",
+  auditShowing: "اس کتاب سے",
+  auditAllShown: "سب دکھائے گئے",
+  auditHeldBack: (n) => `${n} مزید نہیں دکھائے گئے`,
+  basisName: (k) =>
+    ({
+      QUOTED: "جزو کو قوسین میں لکھا",
+      OVERLAP: "صرف لفظی مشابہت",
+      UNALIGNED: "کسی جزو سے منسلک نہیں",
+    })[k] ?? k,
+  auditGaps: "اس صفحے کی معلوم کمیاں",
+  auditGapsBody:
+    "معنوی تلاش فعال نہیں، اس لیے ترتیب صرف ساختی اور لفظی بنیاد پر ہے۔ ہر کتاب کے حقوق کی حیثیت نامعلوم ہے۔ کسی طبع کے صفحات کی تصاویر موجود نہیں، اس لیے کوئی حوالہ اصل صفحے تک نہیں پہنچتا۔",
+  showArabic: "عربی متن دکھائیں",
+  hideArabic: "عربی متن چھپائیں",
 };
 
 export const COPY: Record<UiLanguage, Copy> = { en, ar, ur };

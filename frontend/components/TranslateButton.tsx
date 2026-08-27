@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { COPY } from "@/lib/i18n";
 import type { PassageTranslation, UiLanguage } from "@/lib/types";
 
@@ -21,10 +21,14 @@ export function TranslateButton({
   passageId,
   language,
   initial,
+  autoOpen = false,
 }: {
   passageId: string;
   language: UiLanguage;
   initial?: PassageTranslation | null;
+  /** Fetch without waiting to be asked. Learning depth sets this, because
+   *  there the translation is the content rather than an extra. */
+  autoOpen?: boolean;
 }) {
   const t = COPY[language];
   const [translation, setTranslation] = useState<PassageTranslation | null>(
@@ -33,6 +37,18 @@ export function TranslateButton({
   const [open, setOpen] = useState(Boolean(initial));
   const [loading, setLoading] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
+
+  // Requested once per passage per mount. Without this guard, a re-render
+  // while the request is in flight queues a second identical model call.
+  const asked = useRef(false);
+
+  useEffect(() => {
+    if (!autoOpen || asked.current || translation || language === "ar") return;
+    asked.current = true;
+    void toggle();
+    // toggle closes over state that does not change the decision to fetch.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoOpen, language, translation]);
 
   // Arabic readers already have the source in front of them.
   if (language === "ar") return null;

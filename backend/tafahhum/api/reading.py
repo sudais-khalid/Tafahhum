@@ -48,6 +48,8 @@ class ScholarNote:
     confidence: float
     citation: str
     resolves_to_page: bool
+    volume: int | None
+    page_start: int | None
 
 
 @dataclass
@@ -174,6 +176,8 @@ def build_reading(
             confidence=float(row["confidence"] or 0.0),
             citation=_citation(row, language.value),
             resolves_to_page=row["page_start"] is not None,
+            volume=row["volume"],
+            page_start=row["page_start"],
         )
 
     groups = {
@@ -315,6 +319,12 @@ def build_reading(
             "alignment_basis": n.basis,
             "alignment_confidence": round(n.confidence, 3),
             "citation": n.citation,
+            # How far this citation actually resolves. The auditing view draws a
+            # ladder from these, and a step that does not exist is shown as not
+            # existing rather than omitted.
+            "volume": n.volume,
+            "page_start": n.page_start,
+            "resolves_to_page": n.resolves_to_page,
         }
 
     total_notes = sum(len(g.notes) for g in ordered) + len(unaligned)
