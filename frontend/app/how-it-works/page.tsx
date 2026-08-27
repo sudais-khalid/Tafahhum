@@ -184,11 +184,11 @@ export default function HowItWorks() {
               <dt>{g.contactWhatsapp}</dt>
               <dd>
                 <a
-                  href="https://wa.me/9213185133092"
+                  href="https://wa.me/923185133092"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  +9213185133092
+                  +923185133092
                 </a>
               </dd>
             </div>
