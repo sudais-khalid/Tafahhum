@@ -2132,3 +2132,60 @@ button {
   color: var(--spine-ink);
   border-bottom-color: var(--gold);
 }
+
+.apparatus-limit {
+  margin: 0.4rem 0 0;
+  font-family: var(--font-ui);
+  font-size: 0.74rem;
+  line-height: 1.55;
+  color: var(--warn);
+}
+
+.ref-source-link {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-family: var(--font-data);
+  font-size: 0.7rem;
+}
+
+/* --------------------------------------------------------------- contact */
+
+.contact {
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-lg);
+  background: var(--paper-raised);
+  padding: 1.5rem 1.75rem 1.75rem;
+}
+
+.contact-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem 1.5rem;
+  margin: 1.5rem 0 0;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--rule);
+}
+
+.contact-list dt {
+  font-family: var(--font-data);
+  font-size: 0.64rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 0.25rem;
+}
+
+.contact-list dd {
+  margin: 0;
+  font-size: 0.95rem;
+  word-break: break-word;
+}
+
+.contact-ownership {
+  margin: 1.5rem 0 0;
+  padding-top: 1rem;
+  border-top: 1px solid var(--rule);
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+  color: var(--ink-muted);
+}

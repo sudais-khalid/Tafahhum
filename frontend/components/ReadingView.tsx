@@ -315,6 +315,18 @@ export function ReadingView({
                     <div className="ref-title-ar" lang="ar" dir="rtl">
                       {r.author_ar}, {r.work_title_ar}
                     </div>
+                    {/* The exact bytes ingested. Not a print edition, but it
+                        is something a reader can actually check us against. */}
+                    {r.source_url && (
+                      <a
+                        className="ref-source-link"
+                        href={r.source_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {t.verifySource}
+                      </a>
+                    )}
                   </div>
                 </li>
               ))}

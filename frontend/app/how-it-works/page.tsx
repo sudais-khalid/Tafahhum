@@ -164,6 +164,50 @@ export default function HowItWorks() {
             ))}
           </ol>
         </section>
+        {/* Ownership, and an open invitation to be corrected. A project that
+            asks scholars for trust should make it easy to be told it is wrong. */}
+        <section className="guide-section contact" id="contact">
+          <h2 className="guide-h2">{g.contactTitle}</h2>
+          <p className="guide-p">{g.contactBody}</p>
+          <p className="guide-p">{g.contactCorrections}</p>
+
+          <dl className="contact-list">
+            <div>
+              <dt>{g.contactEmail}</dt>
+              <dd>
+                <a href="mailto:msudaiskhalid.ai@gmail.com">
+                  msudaiskhalid.ai@gmail.com
+                </a>
+              </dd>
+            </div>
+            <div>
+              <dt>{g.contactWhatsapp}</dt>
+              <dd>
+                <a
+                  href="https://wa.me/9213185133092"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  +9213185133092
+                </a>
+              </dd>
+            </div>
+            <div>
+              <dt>{g.contactSite}</dt>
+              <dd>
+                <a
+                  href="https://sudaiskhalid.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  sudaiskhalid.com
+                </a>
+              </dd>
+            </div>
+          </dl>
+
+          <p className="contact-ownership">{g.ownership}</p>
+        </section>
       </main>
 
       <footer className="footer">

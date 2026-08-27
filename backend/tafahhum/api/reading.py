@@ -50,6 +50,7 @@ class ScholarNote:
     resolves_to_page: bool
     volume: int | None
     page_start: int | None
+    source_url: str | None
 
 
 @dataclass
@@ -88,10 +89,12 @@ _PASSAGE_SQL = """
            pp.basis::text AS basis, pp.confidence, pp.gist,
            pp.opens_discussion,
            ph.phrase_index,
+           e.digital_source_url,
            w.slug AS work_slug, w.title_ar AS work_title_ar, w.title_en AS work_title_en,
            w.tradition::text AS tradition, w.catalogue_rank,
            m.name_ar AS author_ar, m.name_en AS author_en, m.death_year_hijri
     FROM published_passage p
+    JOIN edition e ON e.id = p.edition_id
     JOIN passage_ayah pa ON pa.passage_id = p.id
     JOIN tafsir_work w ON w.id = p.tafsir_work_id
     LEFT JOIN mufassir m ON m.id = p.author_id
@@ -178,6 +181,7 @@ def build_reading(
             resolves_to_page=row["page_start"] is not None,
             volume=row["volume"],
             page_start=row["page_start"],
+            source_url=row["digital_source_url"],
         )
 
     groups = {
@@ -296,6 +300,7 @@ def build_reading(
                 "tradition": note.tradition,
                 "citation": note.citation,
                 "resolves_to_page": note.resolves_to_page,
+                "source_url": note.source_url,
             }
         )
 

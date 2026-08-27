@@ -43,6 +43,13 @@ export interface Guide {
   gaps: { name: string; detail: string }[];
   checkTitle: string;
   check: string[];
+  contactTitle: string;
+  contactBody: string;
+  contactCorrections: string;
+  contactEmail: string;
+  contactWhatsapp: string;
+  contactSite: string;
+  ownership: string;
 }
 
 const en: Guide = {
@@ -89,7 +96,7 @@ const en: Guide = {
       step: "6",
       label: "Cite",
       detail:
-        "Every passage carries the work, author, edition, volume and page it came from, and a ladder showing how far that citation actually resolves.",
+        "Every passage carries the work and author it came from, a link to the exact source file it was ingested from, and a ladder showing how far that citation actually resolves. Volume and page are not recorded for any work in the corpus, and the ladder shows that rather than hiding it.",
     },
   ],
 
@@ -231,7 +238,7 @@ const en: Guide = {
       title: "Citations and the provenance ladder",
       body: [
         "Every passage is numbered and the numbers match the reference list at the bottom of the page.",
-        "The ladder runs Work, Edition, Volume, Page, Scan. A filled dot means that step resolves. A hollow dot means it does not exist in the corpus, and it is drawn rather than omitted so a limitation cannot be missed by someone skimming.",
+        "The ladder runs Work, Edition, Volume, Page, Scan. A filled dot means that step resolves. A hollow dot means it does not exist in the corpus, and it is drawn rather than omitted so a limitation cannot be missed by someone skimming. At present only the first step is filled for every passage, because the print edition behind the digital text is not identified.",
       ],
       controls: [
         {
@@ -268,9 +275,9 @@ const en: Guide = {
     "A page arguing that you should trust this system would be dishonest if it left these out.",
   gaps: [
     {
-      name: "No page images",
+      name: "Citations name the work, not a page in it",
       detail:
-        "No edition has scans loaded, so the last step of every provenance ladder is hollow. Citations resolve to a printed page but not to an image of it, which means you can look a citation up but cannot yet verify it here.",
+        "This is the most important limit on this page. The text comes from a digital aggregation that does not identify the underlying print edition, so no passage in the corpus carries a volume or page number, and none has a page image. A citation here tells you which commentator said something and lets you fetch the exact source file we ingested, but it will not take you to a place in a printed book. Checking a passage against a specific tahqiq remains your work, not ours.",
     },
     {
       name: "Edition licensing is unknown",
@@ -302,6 +309,15 @@ const en: Guide = {
     "Compare the translation against the Arabic beside it. They are shown together for this reason.",
     "Narrow your sources to one work and see whether the conclusion changes. It should.",
   ],
+  contactTitle: "Contact, corrections and collaboration",
+  contactBody:
+    "Tafahhum is built and maintained by Sudais Khalid. If you find a mistake, a misattribution, a bad translation, or a passage credited to the wrong commentator, please report it. Corrections from people who know this material are the fastest way this becomes reliable, and they are welcome without reservation.",
+  contactCorrections:
+    "Suggestions and collaboration are equally welcome, particularly from scholars who can identify the print editions behind these texts, which is the single largest gap listed above.",
+  contactEmail: "Email",
+  contactWhatsapp: "WhatsApp",
+  contactSite: "Website",
+  ownership: "Tafahhum is the work of Sudais Khalid.",
 };
 
 const ar: Guide = {
@@ -347,7 +363,7 @@ const ar: Guide = {
       step: "٦",
       label: "التوثيق",
       detail:
-        "كل نص يحمل الكتاب والمؤلف والطبعة والجزء والصفحة، مع سُلّم يبيّن إلى أي حدّ يصل هذا التوثيق فعلاً.",
+        "كل نص يحمل الكتاب والمؤلف، ورابطاً إلى الملف المصدر الذي أُدخل منه بعينه، مع سُلّم يبيّن إلى أي حدّ يصل هذا التوثيق فعلاً. ولا يُسجَّل جزء ولا صفحة لأي كتاب في المدوّنة، والسُّلّم يُظهر ذلك ولا يخفيه.",
     },
   ],
 
@@ -487,7 +503,7 @@ const ar: Guide = {
       title: "التوثيق وسُلّم الإسناد",
       body: [
         "كل نص مرقّم، والأرقام تطابق قائمة المراجع في أسفل الصفحة.",
-        "ويمضي السُّلّم: الكتاب، الطبعة، الجزء، الصفحة، المصوّرة. والنقطة الممتلئة تعني أن هذه الدرجة متحققة، والفارغة تعني أنها غير موجودة في المدوّنة، وتُرسم ولا تُحذف حتى لا يفوت النقصُ من يقرأ سريعاً.",
+        "ويمضي السُّلّم: الكتاب، الطبعة، الجزء، الصفحة، المصوّرة. والنقطة الممتلئة تعني أن هذه الدرجة متحققة، والفارغة تعني أنها غير موجودة في المدوّنة، وتُرسم ولا تُحذف حتى لا يفوت النقصُ من يقرأ سريعاً. وفي الحال الراهنة لا تمتلئ إلا الدرجة الأولى في كل نص، لأن الطبعة المطبوعة وراء النص الرقمي غير محددة.",
       ],
       controls: [
         {
@@ -522,9 +538,9 @@ const ar: Guide = {
   gapsNote: "صفحة تدعوك إلى الثقة بهذا النظام تكون غير أمينة لو أغفلت هذه.",
   gaps: [
     {
-      name: "لا صور للصفحات",
+      name: "التوثيق يسمّي الكتاب لا موضعاً فيه",
       detail:
-        "لا طبعة فيها مصوّرات محمّلة، فآخر درجة في كل سُلّم إسناد فارغة. يصل التوثيق إلى صفحة مطبوعة لا إلى صورتها، أي يمكنك مراجعة الموضع في المطبوع لا التحقق منه هنا.",
+        "هذا أهم قيد في هذه الصفحة. النص مأخوذ من تجميع رقمي لا يحدد الطبعة المطبوعة الأصلية، فلا يحمل أي نص في المدوّنة جزءاً ولا صفحة، ولا توجد صورة صفحة. فالتوثيق هنا يخبرك بمن قال، ويتيح لك جلب الملف المصدر بعينه، لكنه لا يوصلك إلى موضع في مطبوع. ومقابلة النص بتحقيق معيّن تبقى من عملك أنت لا من عملنا.",
     },
     {
       name: "حقوق الطبعات غير معروفة",
@@ -556,6 +572,15 @@ const ar: Guide = {
     "قابل الترجمة بالعربية التي بجوارها. وهما معروضتان معاً لهذا السبب.",
     "ضيّق مصادرك إلى كتاب واحد وانظر هل تتغير الخلاصة. ينبغي أن تتغير.",
   ],
+  contactTitle: "التواصل والتصويب والتعاون",
+  contactBody:
+    "تفهُّم من بناء سُديس خالد وصيانته. فإن وجدت خطأً أو نسبةً غير صحيحة أو ترجمةً رديئة أو نصاً نُسب إلى غير قائله، فأرجو إبلاغي. فتصويبات أهل العلم بهذه المادة أسرع طريق إلى أن يصير هذا العمل موثوقاً، وهي مرحّب بها بلا تحفظ.",
+  contactCorrections:
+    "والاقتراحات والتعاون مرحّب بهما كذلك، ولا سيما من العلماء الذين يستطيعون تحديد الطبعات المطبوعة وراء هذه النصوص، وهي أكبر ثغرة ذُكرت أعلاه.",
+  contactEmail: "البريد",
+  contactWhatsapp: "واتساب",
+  contactSite: "الموقع",
+  ownership: "تفهُّم من عمل سُديس خالد.",
 };
 
 const ur: Guide = {
@@ -602,7 +627,7 @@ const ur: Guide = {
       step: "۶",
       label: "حوالہ",
       detail:
-        "ہر اقتباس کے ساتھ کتاب، مصنف، طبع، جلد اور صفحہ ہوتا ہے، اور ایک سیڑھی جو بتاتی ہے کہ وہ حوالہ حقیقتاً کہاں تک پہنچتا ہے۔",
+        "ہر اقتباس کے ساتھ کتاب اور مصنف ہوتا ہے، اُس اصل ماخذ فائل کا لنک جس سے وہ داخل ہوا، اور ایک سیڑھی جو بتاتی ہے کہ وہ حوالہ حقیقتاً کہاں تک پہنچتا ہے۔ مجموعے کی کسی کتاب کے لیے جلد اور صفحہ درج نہیں، اور سیڑھی یہ چھپاتی نہیں بلکہ دکھاتی ہے۔",
     },
   ],
 
@@ -742,7 +767,7 @@ const ur: Guide = {
       title: "حوالے اور سند کی سیڑھی",
       body: [
         "ہر اقتباس پر نمبر ہے، اور نمبر صفحے کے نیچے مراجع کی فہرست سے ملتے ہیں۔",
-        "سیڑھی یوں چلتی ہے: کتاب، طبع، جلد، صفحہ، عکس۔ بھرا ہوا نقطہ یعنی یہ درجہ پہنچ گیا، خالی نقطہ یعنی وہ مجموعے میں موجود نہیں، اور اسے حذف کرنے کے بجائے کھینچا جاتا ہے تاکہ سرسری پڑھنے والے سے کمی نہ چھوٹے۔",
+        "سیڑھی یوں چلتی ہے: کتاب، طبع، جلد، صفحہ، عکس۔ بھرا ہوا نقطہ یعنی یہ درجہ پہنچ گیا، خالی نقطہ یعنی وہ مجموعے میں موجود نہیں، اور اسے حذف کرنے کے بجائے کھینچا جاتا ہے تاکہ سرسری پڑھنے والے سے کمی نہ چھوٹے۔ فی الحال ہر اقتباس میں صرف پہلا درجہ بھرا ہوتا ہے، کیونکہ برقی متن کے پیچھے کی مطبوعہ طبع متعین نہیں۔",
       ],
       controls: [
         {
@@ -777,9 +802,9 @@ const ur: Guide = {
   gapsNote: "یہ صفحہ آپ سے اعتماد کا تقاضا کرتے ہوئے ان کمیوں کو چھپائے تو بددیانتی ہوگی۔",
   gaps: [
     {
-      name: "صفحات کی تصاویر نہیں",
+      name: "حوالہ کتاب کا نام دیتا ہے، اس میں کوئی مقام نہیں",
       detail:
-        "کسی طبع کے عکس موجود نہیں، اس لیے ہر سند کی سیڑھی کا آخری درجہ خالی ہے۔ حوالہ چھپے ہوئے صفحے تک پہنچتا ہے مگر اس کی تصویر تک نہیں، یعنی آپ حوالہ دیکھ تو سکتے ہیں مگر یہاں اس کی تصدیق نہیں کر سکتے۔",
+        "یہ اس صفحے کی سب سے اہم حد ہے۔ متن ایک برقی مجموعے سے آیا ہے جو اصل مطبوعہ طبع کی نشاندہی نہیں کرتا، اس لیے مجموعے کے کسی اقتباس پر جلد یا صفحہ درج نہیں، اور نہ کوئی عکس ہے۔ یہاں حوالہ آپ کو بتاتا ہے کہ کس مفسر نے کہا، اور وہی ماخذ فائل نکال کر دیتا ہے جو ہم نے داخل کی، مگر یہ آپ کو کسی مطبوعہ مقام تک نہیں لے جائے گا۔ کسی متعین تحقیق سے ملانا آپ کا کام رہے گا، ہمارا نہیں۔",
     },
     {
       name: "طبعات کے حقوق نامعلوم",
@@ -811,6 +836,15 @@ const ur: Guide = {
     "ترجمے کو ساتھ رکھی عربی سے ملائیں۔ دونوں اسی لیے ساتھ دکھائے جاتے ہیں۔",
     "اپنے مآخذ ایک کتاب تک محدود کریں اور دیکھیں کہ خلاصہ بدلتا ہے یا نہیں۔ بدلنا چاہیے۔",
   ],
+  contactTitle: "رابطہ، تصحیح اور اشتراک",
+  contactBody:
+    "تفہُّم سدیس خالد کا بنایا اور سنبھالا ہوا ہے۔ اگر آپ کو کوئی غلطی، غلط نسبت، ناقص ترجمہ، یا کسی اور مفسر کے نام لگا ہوا اقتباس ملے تو براہ کرم مطلع کیجیے۔ اس مواد کو جاننے والوں کی تصحیحات ہی وہ تیز ترین راستہ ہیں جس سے یہ کام قابل اعتماد بنے گا، اور وہ بلا تامل خوش آئند ہیں۔",
+  contactCorrections:
+    "تجاویز اور اشتراک بھی اتنے ہی خوش آئند ہیں، خاص طور پر ان علما کی طرف سے جو ان متون کے پیچھے کی مطبوعہ طبعات کی نشاندہی کر سکیں، جو اوپر درج سب سے بڑی کمی ہے۔",
+  contactEmail: "ای میل",
+  contactWhatsapp: "واٹس ایپ",
+  contactSite: "ویب سائٹ",
+  ownership: "تفہُّم سدیس خالد کا کام ہے۔",
 };
 
 export const GUIDE: Record<UiLanguage, Guide> = { en, ar, ur };

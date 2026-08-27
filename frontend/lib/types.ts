@@ -236,6 +236,8 @@ export interface Reading {
     tradition: string;
     citation: string;
     resolves_to_page: boolean;
+    /** The exact upstream file this work's text was ingested from. */
+    source_url: string | null;
   }[];
   counts: { clauses: number; notes_shown: number; works: number };
   method_note: string;

@@ -28,13 +28,14 @@ export function NoteApparatus({
 
   const resolved: Record<(typeof LADDER)[number], boolean> = {
     work: Boolean(note.work_slug),
-    // A passage in the corpus always came from an edition record, and the
-    // citation string carries it.
-    edition: Boolean(note.citation),
+    // The edition on record is a digital text whose underlying print edition
+    // the upstream source does not identify. Marking this step resolved was
+    // wrong: it made the ladder claim an identified edition the corpus does
+    // not have, which is the first thing a scholar checks and the worst place
+    // to be caught overstating.
+    edition: false,
     volume: note.volume !== null,
     page: note.page_start !== null,
-    // Nothing in the corpus has scans yet. This is a fact about the data, not
-    // about this passage.
     scan: false,
   };
 
@@ -89,6 +90,7 @@ export function NoteApparatus({
       </dl>
 
       <p className="apparatus-citation">{note.citation}</p>
+      <p className="apparatus-limit">{t.auditNoPrintEdition}</p>
     </div>
   );
 }
